@@ -42,7 +42,6 @@ def read_project(project_id: int, session: db_dependency):
     project = project_service.select_project_by_id_db(project_id, session)
     return ProjectRead.from_project(project)
 
-
 @project_router.get("/", response_model=list[ProjectRead])
 def read_all_projects(session: db_dependency):
     """
@@ -57,9 +56,7 @@ def read_all_projects(session: db_dependency):
     return [ProjectRead.from_project(project) for project in projects]
 
 @project_router.patch("/{project_id}", response_model=ProjectRead)
-def update_project_partial(
-    project_id: int, project_update: ProjectUpdatePartial, session: db_dependency
-):
+def update_project_partial(project_id: int, project_update: ProjectUpdatePartial, session: db_dependency):
     """
     ## Update a project (partial)
 

@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 import os
 from database_init import initialize_database
-from routers.project import project_router
+from routers.project import project_router # Import our new projet_router
 
 ALLOWED_ORIGIN: list = os.getenv("CORS_ALLOWED_ORIGIN", "http://localhost:8000").replace(" ", "").split(",")
 ALLOWED_METHODS: list = os.getenv("CORS_ALLOWED_METHODS", "GET, POST, PUT, DELETE, PATCH").replace(" ", "").split(",")
