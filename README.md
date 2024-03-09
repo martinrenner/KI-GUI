@@ -285,6 +285,23 @@ def root():
 
 By following these steps, your FastAPI application will be configured to connect to a PostgreSQL database using SQLModel for ORM, with a clear and maintainable project structure.
 
+## pgAdmin 
+
+If we want to inspect how it looks in our database, we can use pgAdmin, which should be running at http://localhost:5050/.
+
+You defined login credentials in the `.env` file using variables:
+
+```shell
+PGADMIN_DEFAULT_EMAIL=
+PGADMIN_DEFAULT_PASSWORD=
+```
+
+After logging in, click on "Add New Server". In the new window, choose any name and navigate to the "Connection" tab.  
+The hostname is `gui-postgres_db-application`.  
+The "Maintenance database" is the value of the variable `POSTGRES_DB` from `.env`.  
+The "Username" is the value of the variable `POSTGRES_USER` from `.env`.  
+The "Password" is the value of the variable `POSTGRES_PASSWORD` from `.env`.
+
 ## SQL Alchemy Project Model
 
 We will need a SQLAlchemy model to represent our projects in the application.
