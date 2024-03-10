@@ -275,7 +275,7 @@ def root():
 
 By following these steps, your FastAPI application will be configured to connect to a PostgreSQL database using SQLModel for ORM, with a clear and maintainable project structure.
 
-## pgAdmin 
+## pgAdmin
 
 If we want to inspect how it looks in our database, we can use pgAdmin, which should be running at http://localhost:5050/.
 
@@ -292,11 +292,11 @@ The "Maintenance database" is the value of the variable `POSTGRES_DB` from `.env
 The "Username" is the value of the variable `POSTGRES_USER` from `.env`.  
 The "Password" is the value of the variable `POSTGRES_PASSWORD` from `.env`.
 
-## SQL Alchemy Project Model
+# SQL Alchemy Project Model
 
 We will need a SQLAlchemy model to represent our projects in the application.
 
-### Task: Create a Model for Projects
+## Task: Create a Model for Projects
 
 In the `models.py` file, create a model named `Project` with the following attributes:
 
@@ -305,7 +305,7 @@ In the `models.py` file, create a model named `Project` with the following attri
 - `description` (`string`)
 - `is_finished` (`boolean` with a default value of `false`)
 
-You can check the created table in **pgAdmin** at http://localhost:5050/. The table column properties should look like this: 
+You can check the created table in **pgAdmin** at http://localhost:5050/. The table column properties should look like this:
 
 **![project table column properties](imgs/pgadmin.png)**
 
@@ -321,7 +321,8 @@ class Project(SQLModel, table=True):
     is_finished: bool = False
 ```
 
-## FastAPI and CRUD Operations for Projects
+# FastAPI and CRUD Operations for Projects
+
 Before we dive into adding functionality to our application, we should adjust its structure. When building a larger application, it's beneficial to organize it into multiple files, and that's exactly what we'll do. We'll divide the architecture of our API into 3 parts:
 
 1. **Routers**: Routers in FastAPI define URL paths and manage the flow of data between clients and the server. Each router contains sets of paths and functions that are called when requests are made to these paths. These functions encapsulate the logic for processing requests and responses. Routers in FastAPI are built on a modular approach, allowing us to organize code into separate modules based on logical functions or entities.
@@ -330,7 +331,7 @@ Before we dive into adding functionality to our application, we should adjust it
 
 To achieve this, we'll create 3 directories: `routers`, `schemas`, `services`.
 
-### Create projects
+## Create projects
 
 We'll start by creating a file named `project.py` in the `schemas` directory and insert the following content into it:
 
@@ -344,7 +345,7 @@ from models import Project
 class ProjectBase(BaseModel):
     model_config = ConfigDict(extra='forbid')
 
-class ProjectCreate(ProjectBase): 
+class ProjectCreate(ProjectBase):
     name: str = Field(..., examples=["My First Project"], min_length=3, max_length=100)
     description: str = Field(..., examples=["This is my first project"], min_length=3, max_length=1000)
 
@@ -361,9 +362,10 @@ class ProjectRead(ProjectBase):
 
 The class `ProjectBase` contains the model configuration.  
 `ProjectCreate` defines attributes for creating a new project, some of which are mandatory.  
-`ProjectRead` includes attributes for reading project information and contains a class method `from_project`, which creates an instance of `ProjectRead` from the `Project` model.  
+`ProjectRead` includes attributes for reading project information and contains a class method `from_project`, which creates an instance of `ProjectRead` from the `Project` model.
 
 Next, we'll create a file named `project_service.py` in the `services` directory and write the following into it:
+
 ```python
 # services/project_service.py
 
@@ -452,7 +454,7 @@ initialize_database()
 
 We can verify the functionality at http://127.0.0.1:8000/docs.
 
-### Read
+## Read
 
 Now, we will add the ability to retrieve information about projects to our application.  
 Since we already have the schema defined for returning project information, all we need to do is create a service function and an endpoint.
@@ -461,13 +463,13 @@ Let's start with the service. In the file `services/project_service.py`, add the
 
 ```python
 # services/project_service.py
-class ProjectService: 
+class ProjectService:
     ...
 
     def select_project_by_id_db(self, project_id: int, session: Session):
         project = self._get_project_by_id(project_id, session)
         return project
-    
+
     def _get_project_by_id(self, project_id: int, session: Session):
         project = session.get(Project, project_id)
         if project is None:
@@ -482,6 +484,7 @@ The method `select_project_by_id_db` will be called by the API endpoint. In case
 The method `_get_project_by_id` retrieves project information from the database based on the provided `id`. This method is likely to be useful for update and delete operations, hence it is separated and written independently.
 
 Once we have the service ready, we can implement the endpoint itself. We'll do this by adding the method `read_project` to the file `routers/project.py`:
+
 ```python
 # routers/project.py
 ...
@@ -501,8 +504,8 @@ def read_project(project_id: int, session: db_dependency):
     return ProjectRead.from_project(project)
 ```
 
+### Task: Read all projects
 
-#### Task: Read all projects
 Implement a new endpoint and service into our application that will return a list of all projects in the database.  
 Here is the API Endpoint header along with a docstring describing inputs, outputs, and the desired behavior:
 
@@ -522,7 +525,6 @@ def read_all_projects(session: db_dependency):
 
 You can test your solution at http://127.0.0.1:8000/docs.
 
-
 **Possible Solution**
 
 In the file `services/project_service.py`, let's add the method `select_all_projects_db` to the class:
@@ -530,7 +532,7 @@ In the file `services/project_service.py`, let's add the method `select_all_proj
 ```python
 # services/project_service.py
 
-class ProjectService: 
+class ProjectService:
     ...
     def select_all_projects_db(self, session: Session):
             statement = select(Project)
@@ -559,7 +561,8 @@ def read_all_projects(session: db_dependency):
 ...
 ```
 
-### Update
+## Update
+
 Now, let's add the ability to update project information to our application.
 First, we'll create a schema that defines how the input information will look.
 We'll add the class `ProjectUpdatePartial` to the file `schemas/project.py`:
@@ -600,7 +603,7 @@ from helpers import update_object_attributes
 
 ...
 
-class ProjectService: 
+class ProjectService:
     ...
     def update_partial_project_by_id_db(self, project_id: int, project_update: ProjectUpdatePartial, session: Session):
             project = self._get_project_by_id(project_id, session)
@@ -636,9 +639,12 @@ def update_project_partial(project_id: int, project_update: ProjectUpdatePartial
 
 You can try out the new functionality at http://127.0.0.1:8000/docs.
 
-### Delete
-The last missing function in our API is delete. 
-#### Task: Deleting a Project
+## Delete
+
+The last missing function in our API is delete.
+
+### Task: Deleting a Project
+
 Implement a new endpoint and service in our application that will delete the project with the specified `id` from the database.
 Here is the API Endpoint header along with a docstring describing inputs, outputs, and the desired behavior:
 
@@ -660,14 +666,14 @@ def delete_project(project_id: int, session: db_dependency):
 
 You can test your solution at http://127.0.0.1:8000/docs.
 
-
 **Possible Solution**
 
 In the file `services/project_service.py`, let's add the method `delete_project_by_id_db` to the class:
-```python
-# services/project_service.py 
 
-class ProjectService: 
+```python
+# services/project_service.py
+
+class ProjectService:
     ...
     def delete_project_by_id_db(self, project_id: int, session: Session):
         project = self._get_project_by_id(project_id, session)
@@ -698,4 +704,77 @@ def delete_project(project_id: int, session: db_dependency):
     return {"message": "Project deleted"}
 ...
 ```
-    
+
+# Pydantic Validation in Python
+
+Pydantic is a data validation and settings management library using Python type annotations. It allows for complex data schemas with automatic validation and conversion. This part demonstrates using Pydantic to define custom validation of project models in a Python application.
+
+## Basic Model Validation
+
+At the core, Pydantic models are defined by inheriting from `BaseModel`. Each attribute of the model is typed, allowing Pydantic to perform automatic validation and data conversion.
+
+### Example: Defining a Project Model
+
+The `ProjectBase` class is a fundamental model capturing the common attributes of a project. It utilizes `ConfigDict` to enforce extra field validation.
+
+```python
+from pydantic import BaseModel, ConfigDict
+
+class ProjectBase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+```
+
+## Validation of Creating a Project
+
+`ProjectCreate` extends `ProjectBase` with the name and description fields and applies constraints such as minimum and maximum length. In addition, custom validators are defined using the `@field_validator` decorator. These validators can define custom validation logic that is not supported by the base Pydantic.
+
+```python
+from pydantic import Field, field_validator
+from typing import Optional
+
+class ProjectCreate(ProjectBase):
+    name: str = Field(..., examples=["My First Project"], min_length=3, max_length=100)
+    description: str = Field(..., examples=["This is my My First Project"], min_length=3, max_length=1000)
+
+    @field_validator("name", mode="before")
+    def validate_name(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Name must be between 3 and 100 characters long")
+        return value
+
+    @field_validator("description", mode="before")
+    def validate_description(cls, value):
+        if len(value) < 3 or len(value) > 1000:
+            raise ValueError("Description must be between 3 and 1000 characters long")
+        return value
+
+```
+
+## Validation of Partial Update of a Project
+
+The `ProjectUpdatePartial` class demonstrates how to define optional fields for the purpose of partial updates in Pydantic models. This approach is particularly useful when you want to update only a subset of a model's fields without needing to provide all the data again. Here, `name`, `description`, and `is_finished` are all optional, allowing for flexible updates to the project model.
+
+```python
+class ProjectUpdatePartial(ProjectBase):
+    name: Optional[str] = Field(None, examples=["My first project"], min_length=3, max_length=100)
+    description: Optional[str] = Field(None, examples=["This is my first project"], min_length=3, max_length=1000)
+    is_finished: Optional[bool] = Field(None, examples=[True])
+
+    @field_validator("name", mode="before")
+    def validate_name(cls, value):
+        if value is not None and (len(value) < 3 or len(value) > 100):
+            raise ValueError("Name must be between 3 and 100 characters long")
+        return value
+
+    @field_validator("description", mode="before")
+    def validate_description(cls, value):
+        if value is not None and (len(value) < 3 or len(value) > 1000):
+            raise ValueError("Description must be between 3 and 1000 characters long")
+        return value
+
+    @field_validator("is_finished", mode="before")
+    def validate_is_finished(cls, value):
+        if value is not None and not isinstance(value, bool):
+            raise ValueError("Is_finished must be a boolean")
+        return value
+```
