@@ -5,11 +5,13 @@ import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";
 import ProjectView from "./components/Projects/ProjectView/ProjectView.tsx";
 import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
 import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+import Header from "./components/Header/Header.tsx";
 
 function App() {
    return (
-      <Container className="mt-5">
-         <BrowserRouter>
+      <BrowserRouter>
+         <Header />
+         <Container className="mt-5">
             <Routes>
                <Route path="/projects/">
                   <Route path="create" element={<ProjectCreate />} />
@@ -18,8 +20,8 @@ function App() {
                   <Route path=":project_id/edit" element={<ProjectEdit />} />
                </Route>
             </Routes>
-         </BrowserRouter>
-      </Container>
+         </Container>
+      </BrowserRouter>
    );
 }
 
