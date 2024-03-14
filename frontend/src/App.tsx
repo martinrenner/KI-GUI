@@ -9,6 +9,7 @@ import Header from "./components/Header/Header.tsx";
 import Login from "./components/Login/Login.tsx";
 import Register from "./components/Register/Register.tsx";
 import TokenContextProvider from "./context/TokenContextProvider.tsx";
+import Authenticated from "./components/Authenticated/Authenticated.tsx";
 
 function App() {
   return (
@@ -20,10 +21,38 @@ function App() {
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />
             <Route path="/projects/">
-              <Route path="create" element={<ProjectCreate />} />
-              <Route path="" element={<ProjectList />} />
-              <Route path=":project_id" element={<ProjectView />} />
-              <Route path=":project_id/edit" element={<ProjectEdit />} />
+              <Route
+                path="create"
+                element={
+                  <Authenticated>
+                    <ProjectCreate />
+                  </Authenticated>
+                }
+              />
+              <Route
+                path=""
+                element={
+                  <Authenticated>
+                    <ProjectList />
+                  </Authenticated>
+                }
+              />
+              <Route
+                path=":project_id"
+                element={
+                  <Authenticated>
+                    <ProjectView />
+                  </Authenticated>
+                }
+              />
+              <Route
+                path=":project_id/edit"
+                element={
+                  <Authenticated>
+                    <ProjectEdit />
+                  </Authenticated>
+                }
+              />
             </Route>
           </Routes>
         </Container>
