@@ -1,5 +1,6 @@
 import { useState, ChangeEvent, FormEvent, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import TokenContext from "../../context/TokenContext";
 import {
   Button,
   Form,
@@ -20,6 +21,7 @@ function LoginForm() {
   });
 
   const navigate = useNavigate();
+  const { login } = useContext(TokenContext)!;
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -80,7 +82,7 @@ function LoginForm() {
           }
         })
         .then((data) => {
-          console.log(data.access_token);
+          login(data.access_token);
           navigate("/projects");
         })
         .catch((error) => {
