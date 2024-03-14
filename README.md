@@ -778,3 +778,28 @@ class ProjectUpdatePartial(ProjectBase):
             raise ValueError("Is_finished must be a boolean")
         return value
 ```
+
+# Autentizace (JWT)
+
+## FastAPI
+
+```python
+class Project(SQLModel, table=True):
+    __tablename__ = "project"
+
+    id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
+    name: str
+    description: str
+    is_finished: bool = False
+    user_id: int = Field(foreign_key="user.id")
+
+
+class User(SQLModel, table=True):
+    __tablename__ = "user"
+
+    id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
+    name: str
+    surname: str
+    email: str = Field(sa_column=Column(VARCHAR, unique=True))
+    hashed_password: str
+```
