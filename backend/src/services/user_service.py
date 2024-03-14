@@ -2,6 +2,7 @@ from sqlmodel import Session
 from schemas.user import UserCreate
 from models import User
 from database import commit_and_handle_exception, refresh_and_handle_exception
+from services.auth_service import bcrypt_context
 
 
 class UserService:
@@ -10,7 +11,7 @@ class UserService:
             name=user_create.name.strip(),
             surname=user_create.surname.strip(),
             email=user_create.email.strip(),
-            hashed_password=user_create.password.strip(),
+            hashed_password=bcrypt_context.hash(user_create.password.strip()),
         )
         session.add(new_user)
         commit_and_handle_exception(session)

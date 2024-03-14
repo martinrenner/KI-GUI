@@ -46,3 +46,8 @@ class UserCreate(UserBase):
         if value != password:
             raise ValueError("Passwords do not match")
         return value
+
+
+class UserLogin(UserBase):
+    email: str
+    password: str

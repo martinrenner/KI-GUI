@@ -3,6 +3,7 @@ import os
 from database_init import initialize_database
 from routers.project import project_router  # Import our new projet_router
 from routers.user import user_router  # Import our new user_router
+from routers.auth import auth_router  # Import our new auth_router
 from fastapi.middleware.cors import CORSMiddleware
 
 ALLOWED_ORIGIN: list = os.getenv("CORS_ALLOWED_ORIGIN", "http://localhost:8000").replace(" ", "").split(",")
@@ -15,6 +16,7 @@ MAX_AGE: int = int(os.getenv("CORS_MAX_AGE", 600))
 app = FastAPI()
 app.include_router(project_router)
 app.include_router(user_router)
+app.include_router(auth_router)
 
 app.add_middleware(
     CORSMiddleware,
