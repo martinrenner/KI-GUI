@@ -1,5 +1,6 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
+from tokens.access_token import AccessToken
 from services.project_service import ProjectService
 from schemas.project import ProjectRead, ProjectCreate, ProjectUpdatePartial
 from database import get_session
@@ -9,11 +10,13 @@ from sqlmodel import Session
 project_router = APIRouter(prefix="/project", tags=["Project"])
 
 db_dependency = Annotated[Session, Depends(get_session)]
+user_dependency = Annotated[dict, Depends(AccessToken.verify_token)]
 
 project_service = ProjectService()
 
+
 @project_router.post("/", response_model=ProjectRead)
-def create_project(project_create: ProjectCreate, session: db_dependency):
+def create_project(project_create: ProjectCreate, user: user_dependency, session: db_dependency):
     """
     ## Create a new project
 
@@ -24,11 +27,12 @@ def create_project(project_create: ProjectCreate, session: db_dependency):
     Returns:
     - `project`: Project object
     """
-    new_project = project_service.insert_project_db(project_create, session)
+    new_project = project_service.insert_project_db(project_create, user.id, session)
     return ProjectRead.from_project(new_project)
 
+
 @project_router.get("/{project_id}", response_model=ProjectRead)
-def read_project(project_id: int, session: db_dependency):
+def read_project(project_id: int, user: user_dependency, session: db_dependency):
     """
     ## Retrieve a project from the database
 
@@ -39,11 +43,12 @@ def read_project(project_id: int, session: db_dependency):
     Returns:
     - `project`: Project object
     """
-    project = project_service.select_project_by_id_db(project_id, session)
+    project = project_service.select_project_by_id_db(project_id, user.id, session)
     return ProjectRead.from_project(project)
 
+
 @project_router.get("/", response_model=list[ProjectRead])
-def read_all_projects(session: db_dependency):
+def read_all_projects(user: user_dependency, session: db_dependency):
     """
     ## Retrieve all projects from the database
 
@@ -52,11 +57,14 @@ def read_all_projects(session: db_dependency):
     Returns:
     - `projects`: List of project objects
     """
-    projects = project_service.select_all_projects_db(session)
+    projects = project_service.select_all_projects_db(user.id, session)
     return [ProjectRead.from_project(project) for project in projects]
 
+
 @project_router.patch("/{project_id}", response_model=ProjectRead)
-def update_project_partial(project_id: int, project_update: ProjectUpdatePartial, session: db_dependency):
+def update_project_partial(
+    project_id: int, project_update: ProjectUpdatePartial, user: user_dependency, session: db_dependency
+):
     """
     ## Update a project (partial)
 
@@ -68,11 +76,12 @@ def update_project_partial(project_id: int, project_update: ProjectUpdatePartial
     Returns:
     - `project`: Project object
     """
-    updated_project = project_service.update_partial_project_by_id_db(project_id, project_update,session)
+    updated_project = project_service.update_partial_project_by_id_db(project_id, project_update, user.id, session)
     return ProjectRead.from_project(updated_project)
 
+
 @project_router.delete("/{project_id}")
-def delete_project(project_id: int, session: db_dependency):
+def delete_project(project_id: int, user: user_dependency, session: db_dependency):
     """
     ## Delete a project
 
@@ -83,5 +92,5 @@ def delete_project(project_id: int, session: db_dependency):
     Returns:
     - `message`: Message indicating that the project was deleted
     """
-    project_service.delete_project_by_id_db(project_id, session)
+    project_service.delete_project_by_id_db(project_id, user.id, session)
     return {"message": "Project deleted"}
