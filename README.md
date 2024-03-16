@@ -232,17 +232,22 @@ This guide outlines steps to run application with FastAPI and React. Before we c
 4. Freeze requirements for Docker `pip freeze > requirements.txt`
 
 ## Setup react
-
+> [!NOTE]
 > Note: Similar to the Python virtual environment, local installation of Node modules aids in providing IntelliSense for development.
 
 1. Install dependencies with `npm install`.
 
-## Configuring Environment Variables
+## Configuring Environment Variables
 
-Leveraging a .env file for environment variables is crucial for securing and customizing your application's configuration.
+Leveraging a `.env` file for environment variables is crucial for securing and customizing your application's configuration. Here's why:
 
-1. Create a `.env` file by copying the provided .env.example template:
-`cp .env.example .env` or copy following code
+- Security: Keeps sensitive data like API keys and passwords safe and out of source control.
+- Configuration Management: Allows environment-specific settings, enabling seamless transitions between development, testing, and production without code changes.
+- Convenience: Centralizes configuration in one place for easy management and clarity, streamlining setup for new developers with a .env.example template.
+- Separation of Concerns: Decouples configuration from code, enhancing maintainability and scalability.
+- Portability & Scalability: Facilitates easy deployment across different environments and platforms, supporting dynamic updates to configuration as the application grows.
+
+1. Create a `.env` file by copying the provided .env.example template: `cp .env.example .env` or copy following code
 
 ```bash
 # FastAPI Middleware
@@ -290,7 +295,7 @@ This command will initiate the building and running of the services defined in y
 - **pgAdmin** at `http://localhost:5050`
 
 > [!CAUTION]
-> It's possible for services to start out of order, leading to connection issues (e.g., FastAPI starting before PostgreSQL is ready). If this occurs, simply restarting the affected container usually resolves the issue. Otherwise we would need to add health checks do `docker-compose.yaml`.
+> It's possible for services to start out of order, leading to connection issues (e.g., FastAPI starting before PostgreSQL is ready). If this occurs, simply restarting the affected container usually resolves the issue. Otherwise we would need to add health checks to `docker-compose.yaml`.
 
 # 2. Setting Up Database Connection in FastAPI with PostgreSQL and SQLModel
 
