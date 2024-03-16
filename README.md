@@ -1,45 +1,82 @@
-# Creating a Web Application with Python FastAPI, React (Vite), Docker, PostgreSQL, and pgAdmin
+# Project Management Application (Full-stack)
 
-This guide outlines the steps to set up a web application with a Python FastAPI backend, a React frontend using Vite for rapid development, and Docker for easy deployment and environment management. We will also use PostgreSQL as our database and pgAdmin for database management.
+This full-stack web application is designed to streamline the management of your projects, offering functionalities to create, edit, delete, view, and mark projects as finished. Built with a focus on simplicity and efficiency, it features a secure authentication system using JWT tokens for user, ensuring that only authorized users can access and manage their projects.
 
-## Overview
+- [presentation](https://tinyurl.com/ki-mr-gui-prezentace) (only in Czech)
 
-The application architecture includes:
+## 🛠️ Technologies
 
-- A **FastAPI backend** with a single endpoint returning a "Hello World" message.
-- A **React frontend** created with Vite for an optimized development experience.
-- **Docker** for containerizing and running the FastAPI and React applications, alongside PostgreSQL and pgAdmin.
+- **Backend**: FastAPI (Python) - A modern, fast (high-performance) web framework for building APIs with Python.
+- **Frontend**: React (TypeScript) - A JavaScript library for building user interfaces, providing a seamless and dynamic experience.
+- **Database**: PostgreSQL - An open-source relational database with a strong reputation for reliability, feature robustness, and performance.
+- **Database Management**: PgAdmin - An open-source administration and development platform for PostgreSQL, allowing easy management and configuration of the database.
+
+## 👨🏿‍💻 Contributors
+
+- [Martin Renner](https://github.com/martinrenner)
+- [Adam Budiš](https://github.com/adambudis)
+- [David Bartoš](https://github.com/nec3k)
+
+## ✅ Checkpoints
+
+We've prepared checkpoints throughout the course to ensure that no student feels lost. If you find yourself needing to use one of these checkpoints, please download the specified file, unzip it, and copy the .env file into your new checkpoint project. Additionally, it's necessary to delete any old containers, images, and volumes to prevent conflicts due to duplicate names.
+
+1. [Setup](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/1-setup.zip)
+2. [Database](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/2-database.zip)
+3. [Models](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/3-models.zip)
+4. [Create and Read](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/4-create_and_read.zip)
+5. [Crud](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/5-crud.zip)
+6. [Pydantic](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/6-pydantic.zip)
+7. [List Projects](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/7-ListProject.zip)
+8. [Edit Project](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/8-EditProject.zip)
+9. [View Project](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/9-ViewProject.zip)
+10. [Create Project](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/10-CreateProject.zip)
+11. [Register User](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/11-register_user.zip)
+12. [Login User](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/12-login_user.zip)
+13. [Project Auth](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/13-project_auth.zip)
+14. [Register and Login Form](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/14-register_and_login_form.zip)
+15. [Token Context](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/15-token_context.zip)
+16. [Forms with Token and Auth Router](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/16-forms_with_token_and_auth_router.zip)
+17. [Docs](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/17-docs.zip)
+
+# 0. Creating a Web Application with Python FastAPI, React (Vite), Docker, PostgreSQL, and pgAdmin
+
+> Note: Project structure is already created in 1st checkpoint. Please download it from that source.
+
+This comprehensive guide walks you through setting up a sophisticated web application leveraging the efficiency and scalability of FastAPI, React with Vite for a dynamic frontend, and Docker for seamless deployment. Utilizing PostgreSQL for robust database solutions and pgAdmin for intuitive database management, this setup is designed for developers looking to build scalable web applications with modern technologies.
 
 ## Backend Setup with FastAPI
 
-Our FastAPI backend will feature a single endpoint that delivers a JSON response.
+FastAPI powers our application's backend, offering high performance and easy-to-build APIs.
 
 ### Setting Up FastAPI
 
-1. Create a `main.py` file for your FastAPI application.
-2. Set up a virtual environment `python -m venv venv`.
-3. Activate virtual environment `venv\Scripts\activate`.
-4. Install FastAPI and Uvicorn with `pip install fastapi uvicorn`.
-5. Start the development server using Uvicorn `uvicorn main:app --reload`.
+1. Create and move to `/backend`.
+2. Create a `main.py` file for your FastAPI application.
+3. Initialize FastAPI instance in `main.py` with following code:
+
+```python
+from fastapi import FastAPI
+
+app = FastAPI()
+```
 
 ## Frontend Setup with React and Vite
 
-We'll use React and Vite for a streamlined frontend development process.
+React paired with Vite offers a modern, fast development experience for the frontend.
 
 ### Setting Up React with Vite
 
-1. Create a new React project with Vite using `npm create vite@latest PROJECT_NAME`.
-2. Navigate to your project directory with `cd PROJECT_NAME`.
-3. Install dependencies with `npm install`.
-4. Start the development server with `npm run dev`.
+1. Create folder and move to `/frontend`
+2. Create a new React project with Vite using `npm create vite@latest PROJECT_NAME .`. (the . is for current directory)
 
 ## Dockerization
 
-Docker will containerize our applications, PostgreSQL, and pgAdmin for consistency across environments.
+Docker simplifies deployment and ensures consistency across different environments. Docker will containerize our applications, PostgreSQL, and pgAdmin for consistency across environments.
 
 ### Dockerizing FastAPI
 
-In the FastAPI project root, create a `Dockerfile` with:
+In the FastAPI project root `/backend`, create a `Dockerfile` with:
 
 ```Dockerfile
 FROM python:3.12-slim
@@ -56,9 +93,9 @@ CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
 
 ### Dockerizing React with Vite
 
-Create a `Dockerfile` in the React project root:
+Create a `Dockerfile` in the React project root `/frontend`:
 
-```
+```Dockerfile
 FROM node:20-alpine
 
 WORKDIR /frontend
@@ -73,9 +110,9 @@ EXPOSE 5173
 CMD ["npm", "run", "dev"]
 ```
 
-Modify vite.config.ts for a fixed port:
+Modify `vite.config.ts` for a fixed port:
 
-```
+```javascript
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react-swc'
 
@@ -97,7 +134,7 @@ export default defineConfig({
 
 Use docker-compose.yml at the project root to define services for FastAPI, React, PostgreSQL, and pgAdmin:
 
-```
+```Dockerfile
 version: "3.9"
 
 services:
@@ -174,23 +211,90 @@ volumes:
 
 This docker-compose.yml file defines four services: fastapi, react, db (PostgreSQL), and pgadmin. It specifies the build context, port mappings, and environment variables for each service.
 
-## Running the Application
+# 1. Running the Application: FastAPI and React
 
-Start your application stack with Docker Compose:
+This guide outlines steps to run application with FastAPI and React. Before we compose our full-stack application, there are several step we need to do.
 
+## Setup python virtual environment.
+
+> Note: While Docker encapsulates our environment, setting up a local virtual environment is beneficial for IDE-based IntelliSense and code completion.
+
+> Note: We have already prepared list of requirements so you don't need to install it manualy. Just create the virtual enviroment and run. `pip install -r requirements.txt`
+
+1. Set up a virtual environment `python -m venv venv`.
+2. Activate virtual environment `venv\Scripts\activate` or `source venv/bin/activate`.
+3. Install FastAPI and Uvicorn with `pip install fastapi uvicorn`.
+4. Freeze requirements for Docker `pip freeze > requirements.txt`
+
+## Setup react
+
+> Note: Similar to the Python virtual environment, local installation of Node modules aids in providing IntelliSense for development.
+
+1. Install dependencies with `npm install`.
+
+## Configuring Environment Variables
+
+Leveraging a .env file for environment variables is crucial for securing and customizing your application's configuration.
+
+1. Create a `.env` file by copying the provided .env.example template:
+`cp .env.example .env` or copy following code
+
+```bash
+# FastAPI Middleware
+
+CORS_ALLOWED_ORIGIN=
+CORS_ALLOWED_METHODS=
+CORS_ALLOWED_HEADERS=
+CORS_ALLOW_CREDENTIALS=
+CORS_MAX_AGE=
+
+
+# Auth for JWT
+
+JWT_SECRET_KEY=
+JWT_ALGORITHM=
+JWT_ACCESS_TOKEN_EXPIRE_MINUTES=
+JWT_REFRESH_TOKEN_EXPIRE_DAYS=
+
+
+# Postgres
+
+POSTGRES_USER=
+POSTGRES_PASSWORD=
+POSTGRES_DB=
+
+
+# pgAdmin
+
+PGADMIN_DEFAULT_EMAIL=
+PGADMIN_DEFAULT_PASSWORD=
 ```
+
+## Docker compose
+
+Docker Compose orchestrates the containers, ensuring they are built and started together.
+
+```bash
 docker compose -p "YOUR_CONTAINER_NAME" up
 ```
 
+This command will initiate the building and running of the services defined in your docker-compose.yml. Once running, your application will be accessible via:
+
+- **FastAPI backend** at `http://localhost:8000`
+- **React frontend** at `http://localhost:5173`
+- **pgAdmin** at `http://localhost:5050`
+
 This command builds and starts the containers defined in your docker-compose.yml file. Once the containers are up and running, you can access the FastAPI application at http://localhost:8000, the React application at http://localhost:5173, pgAdmin at http://localhost:5050, and connect to your PostgreSQL database using pgAdmin.
 
-# Setting Up Database Connection in FastAPI with PostgreSQL and SQLModel
+> Troubleshooting: It's possible for services to start out of order, leading to connection issues (e.g., FastAPI starting before PostgreSQL is ready). If this occurs, simply restarting the affected container usually resolves the issue. Otherwise we would need to add health checks do `docker-compose.yaml`.
 
-This guide explains how to connect a FastAPI application to a PostgreSQL database using SQLModel for ORM (Object-Relational Mapping). We'll structure our application into several files for clarity and maintainability.
+# 2. Setting Up Database Connection in FastAPI with PostgreSQL and SQLModel
+
+This tutorial demonstrates how to integrate a PostgreSQL database into a FastAPI application using SQLModel for ORM, ensuring a structured, clear, and maintainable codebase.
 
 ## Database Configuration
 
-First, create a `database.py` file to set up the database connection and session management. This file utilizes environment variables to configure the database connection string securely.
+First, create a `database.py` file in `/backend` to set up the database connection and session management. This file utilizes environment variables to configure the database connection string securely.
 
 ```
 import os
@@ -245,7 +349,7 @@ class Test(SQLModel, table=True):
 
 ## Database Initialization
 
-Create a `database_init.py` file to check if the database is initialized and to initialize it if necessary.
+Handle database initialization in a `database_init.py` file, ensuring tables are created if they don't exist.
 
 ```
 from database import engine
@@ -265,7 +369,7 @@ from database_init import initialize_database
 
 app = FastAPI()
 
-# Ensure the database is initialized
+# Database Initialization
 initialize_database()
 
 @app.get("/")
@@ -275,7 +379,7 @@ def root():
 
 By following these steps, your FastAPI application will be configured to connect to a PostgreSQL database using SQLModel for ORM, with a clear and maintainable project structure.
 
-## pgAdmin
+## Inspecting the Database with pgAdmin
 
 If we want to inspect how it looks in our database, we can use pgAdmin, which should be running at http://localhost:5050/.
 
@@ -292,7 +396,7 @@ The "Maintenance database" is the value of the variable `POSTGRES_DB` from `.env
 The "Username" is the value of the variable `POSTGRES_USER` from `.env`.  
 The "Password" is the value of the variable `POSTGRES_PASSWORD` from `.env`.
 
-# SQL Alchemy Project Model
+# 3. SQL Alchemy Project Model
 
 We will need a SQLAlchemy model to represent our projects in the application.
 
