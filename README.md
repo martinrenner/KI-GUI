@@ -303,7 +303,7 @@ This tutorial demonstrates how to integrate a PostgreSQL database into a FastAPI
 
 First, create a `database.py` file in `/backend` to set up the database connection and session management. This file utilizes environment variables to configure the database connection string securely.
 
-```
+```python
 import os
 from fastapi import HTTPException
 from sqlmodel import Session, create_engine
@@ -342,7 +342,7 @@ def refresh_and_handle_exception(session: Session, *objects):
 
 Next, define your database models using SQLModel in a `models.py` file. Here's an example with a simple `Test` model.
 
-```
+```python
 from sqlmodel import Field, SQLModel, BIGINT
 from sqlalchemy import Column
 
@@ -358,7 +358,7 @@ class Test(SQLModel, table=True):
 
 Handle database initialization in a `database_init.py` file, ensuring tables are created if they don't exist.
 
-```
+```python
 from database import engine
 from sqlmodel import SQLModel
 
@@ -370,7 +370,7 @@ def initialize_database():
 
 In your FastAPI application's entry point, typically `main.py`, ensure you initialize the database by calling the `initialize_database` function at the start.
 
-```
+```python
 from fastapi import FastAPI
 from database_init import initialize_database
 
