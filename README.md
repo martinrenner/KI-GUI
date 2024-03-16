@@ -22,23 +22,23 @@ This full-stack web application is designed to streamline the management of your
 We've prepared checkpoints throughout the course to ensure that no student feels lost. If you find yourself needing to use one of these checkpoints, please download the specified file, unzip it, and copy the .env file into your new checkpoint project. Additionally, it's necessary to delete any old containers, images, and volumes to prevent conflicts due to duplicate names.
 
 0. [Installation](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#0-creating-a-web-application-with-python-fastapi-react-vite-docker-postgresql-and-pgadmin)
-1. [Setup]([https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/1-setup.zip](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#1-running-the-application-fastapi-and-react))
-2. [Database]([https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/2-database.zip](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#2-setting-up-database-connection-in-fastapi-with-postgresql-and-sqlmodel))
-3. [Models](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/3-models.zip)
-4. [Create and Read](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/4-create_and_read.zip)
-5. [Crud](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/5-crud.zip)
-6. [Pydantic](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/6-pydantic.zip)
-7. [List Projects](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/7-ListProject.zip)
-8. [Edit Project](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/8-EditProject.zip)
-9. [View Project](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/9-ViewProject.zip)
-10. [Create Project](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/10-CreateProject.zip)
-11. [Register User](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/11-register_user.zip)
-12. [Login User](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/12-login_user.zip)
-13. [Project Auth](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/13-project_auth.zip)
-14. [Register and Login Form](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/14-register_and_login_form.zip)
-15. [Token Context](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/15-token_context.zip)
-16. [Forms with Token and Auth Router](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/16-forms_with_token_and_auth_router.zip)
-17. [Docs](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/17-docs.zip)
+1. [Setup](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#1-running-the-application-fastapi-and-react)
+2. [Database](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#2-setting-up-database-connection-in-fastapi-with-postgresql-and-sqlmodel)
+3. [Models]
+4. [Create and Read]
+5. [Crud]
+6. [Pydantic]
+7. [List Projects]
+8. [Edit Project]
+9. [View Project]
+10. [Create Project]
+11. [Register User]
+12. [Login User]
+13. [Project Auth]
+14. [Register and Login Form]
+15. [Token Context]
+16. [Forms with Token and Auth Router]
+17. [Docs]
 
 # 0. Creating a Web Application with Python FastAPI, React (Vite), Docker, PostgreSQL, and pgAdmin
 > [!IMPORTANT]
@@ -288,8 +288,6 @@ This command will initiate the building and running of the services defined in y
 - **FastAPI backend** at `http://localhost:8000`
 - **React frontend** at `http://localhost:5173`
 - **pgAdmin** at `http://localhost:5050`
-
-This command builds and starts the containers defined in your docker-compose.yml file. Once the containers are up and running, you can access the FastAPI application at http://localhost:8000, the React application at http://localhost:5173, pgAdmin at http://localhost:5050, and connect to your PostgreSQL database using pgAdmin.
 
 > [!CAUTION]
 > It's possible for services to start out of order, leading to connection issues (e.g., FastAPI starting before PostgreSQL is ready). If this occurs, simply restarting the affected container usually resolves the issue. Otherwise we would need to add health checks do `docker-compose.yaml`.
