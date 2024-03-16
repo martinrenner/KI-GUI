@@ -13,7 +13,42 @@ ALLOW_CREDENTIALS: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "TRUE") == "TRUE"
 MAX_AGE: int = int(os.getenv("CORS_MAX_AGE", 600))
 
 
-app = FastAPI()
+description = """
+## Usage and explanation
+
+1. Register user `[POST] /user`
+
+2. Login user `[POST] /auth/token` (create token)
+
+3. Create project `[POST] /project`
+
+4. Get projects `[GET] /project`
+"""
+
+tags_metadata = [
+    {
+        "name": "Auth",
+        "description": "Operations with authentication. **No authorization required.**",
+    },
+    {
+        "name": "User",
+        "description": "Operations with users. **No authorization required.**",
+    },
+    {
+        "name": "Project",
+        "description": "Operations with projects. Basic CRUD operations. **Authorization required.**",
+    },
+]
+
+app = FastAPI(
+    title="GUI APP",
+    summary="GUI APP - Project Manager Documentation",
+    description=description,
+    version="1.0.0",
+    openapi_tags=tags_metadata,
+)
+
+
 app.include_router(project_router)
 app.include_router(user_router)
 app.include_router(auth_router)

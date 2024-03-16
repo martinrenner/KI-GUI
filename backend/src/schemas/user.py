@@ -1,6 +1,7 @@
 from pydantic import BaseModel, ConfigDict, Field, field_validator, EmailStr
 from pydantic_core.core_schema import FieldValidationInfo
 import re
+from models import User
 
 
 class UserBase(BaseModel):
@@ -46,6 +47,22 @@ class UserCreate(UserBase):
         if value != password:
             raise ValueError("Passwords do not match")
         return value
+
+
+class UserRead(UserBase):
+    id: int
+    name: str
+    surname: str
+    email: EmailStr
+
+    @classmethod
+    def from_user(cls, user: User):
+        return cls(
+            id=user.id,
+            name=user.name,
+            surname=user.surname,
+            email=user.email,
+        )
 
 
 class UserLogin(UserBase):

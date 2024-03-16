@@ -19,5 +19,17 @@ auth_service = AuthService()
 
 @auth_router.post("/token", response_model=TokenRead)
 def token_user(user_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: db_dependency):
+    """
+    ## Generate a token
+
+    This endpoint will generate a token based on the username(email) and password provided.
+
+    Args:
+    - **user_data** (Annotated[OAuth2PasswordRequestForm, Depends()]): The user data containing the username and password.
+
+    Returns:
+    - `token `: The token read model containing the access token.
+
+    """
     user = auth_service.verify_user_and_password(user_data, session)
     return TokenRead.from_auth(AccessToken.create_token(user))

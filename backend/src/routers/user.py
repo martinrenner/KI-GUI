@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import APIRouter, Depends
 from services.user_service import UserService
-from schemas.user import UserCreate
+from schemas.user import UserCreate, UserRead
 from database import get_session
 from sqlmodel import Session
 
@@ -12,7 +12,7 @@ db_dependency = Annotated[Session, Depends(get_session)]
 user_service = UserService()
 
 
-@user_router.post("/")
+@user_router.post("/", response_model=UserRead)
 def create_user(user_create: UserCreate, session: db_dependency):
     """
     ## Create a new user (**register**)
@@ -25,4 +25,4 @@ def create_user(user_create: UserCreate, session: db_dependency):
     - `user`: User object
     """
     user = user_service.insert_user_db(user_create, session)
-    return user
+    return UserRead.from_user(user)
