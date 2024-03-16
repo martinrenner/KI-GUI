@@ -21,8 +21,9 @@ This full-stack web application is designed to streamline the management of your
 
 We've prepared checkpoints throughout the course to ensure that no student feels lost. If you find yourself needing to use one of these checkpoints, please download the specified file, unzip it, and copy the .env file into your new checkpoint project. Additionally, it's necessary to delete any old containers, images, and volumes to prevent conflicts due to duplicate names.
 
-1. [Setup](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/1-setup.zip)
-2. [Database](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/2-database.zip)
+0. [Installation](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#0-creating-a-web-application-with-python-fastapi-react-vite-docker-postgresql-and-pgadmin)
+1. [Setup]([https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/1-setup.zip](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#1-running-the-application-fastapi-and-react))
+2. [Database]([https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/2-database.zip](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#2-setting-up-database-connection-in-fastapi-with-postgresql-and-sqlmodel))
 3. [Models](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/3-models.zip)
 4. [Create and Read](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/4-create_and_read.zip)
 5. [Crud](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/5-crud.zip)
@@ -40,8 +41,8 @@ We've prepared checkpoints throughout the course to ensure that no student feels
 17. [Docs](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/17-docs.zip)
 
 # 0. Creating a Web Application with Python FastAPI, React (Vite), Docker, PostgreSQL, and pgAdmin
-
-> Note: Project structure is already created in 1st checkpoint. Please download it from that source.
+> [!IMPORTANT]
+> Project structure is already created in 1st checkpoint. Please download it from that source.
 
 This comprehensive guide walks you through setting up a sophisticated web application leveraging the efficiency and scalability of FastAPI, React with Vite for a dynamic frontend, and Docker for seamless deployment. Utilizing PostgreSQL for robust database solutions and pgAdmin for intuitive database management, this setup is designed for developers looking to build scalable web applications with modern technologies.
 
@@ -213,12 +214,16 @@ This docker-compose.yml file defines four services: fastapi, react, db (PostgreS
 
 # 1. Running the Application: FastAPI and React
 
+> [!TIP]
+> Download checkpoint: [Setup](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/1-setup.zip)
+
 This guide outlines steps to run application with FastAPI and React. Before we compose our full-stack application, there are several step we need to do.
 
 ## Setup python virtual environment.
+> [!NOTE]
+> While Docker encapsulates our environment, setting up a local virtual environment is beneficial for IDE-based IntelliSense and code completion.
 
-> Note: While Docker encapsulates our environment, setting up a local virtual environment is beneficial for IDE-based IntelliSense and code completion.
-
+>[!NOTE]
 > Note: We have already prepared list of requirements so you don't need to install it manualy. Just create the virtual enviroment and run. `pip install -r requirements.txt`
 
 1. Set up a virtual environment `python -m venv venv`.
@@ -286,9 +291,13 @@ This command will initiate the building and running of the services defined in y
 
 This command builds and starts the containers defined in your docker-compose.yml file. Once the containers are up and running, you can access the FastAPI application at http://localhost:8000, the React application at http://localhost:5173, pgAdmin at http://localhost:5050, and connect to your PostgreSQL database using pgAdmin.
 
-> Troubleshooting: It's possible for services to start out of order, leading to connection issues (e.g., FastAPI starting before PostgreSQL is ready). If this occurs, simply restarting the affected container usually resolves the issue. Otherwise we would need to add health checks do `docker-compose.yaml`.
+> [!CAUTION]
+> It's possible for services to start out of order, leading to connection issues (e.g., FastAPI starting before PostgreSQL is ready). If this occurs, simply restarting the affected container usually resolves the issue. Otherwise we would need to add health checks do `docker-compose.yaml`.
 
 # 2. Setting Up Database Connection in FastAPI with PostgreSQL and SQLModel
+
+> [!TIP]
+> Download checkpoint: [Database](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/2-database.zip)
 
 This tutorial demonstrates how to integrate a PostgreSQL database into a FastAPI application using SQLModel for ORM, ensuring a structured, clear, and maintainable codebase.
 
