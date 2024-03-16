@@ -7,7 +7,7 @@ import TokenContext from "../../../context/TokenContext";
 function ProjectView() {
   const navigate = useNavigate();
   const { project_id } = useParams();
-  const { token, isTokenValid } = useContext(TokenContext)!;
+  const { token, isTokenValid } = useContext(TokenContext);
   const [project, setProject] = useState<Project>();
 
   useEffect(() => {

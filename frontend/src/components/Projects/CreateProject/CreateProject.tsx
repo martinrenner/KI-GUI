@@ -15,7 +15,7 @@ function ProjectCreate() {
   });
 
   const navigate = useNavigate();
-  const { token } = useContext(TokenContext)!;
+  const { token } = useContext(TokenContext);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

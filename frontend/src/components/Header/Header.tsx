@@ -1,10 +1,10 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import TokenContext from "../../context/TokenContext";
 import { Container, Nav, Navbar } from "react-bootstrap";
 
 function Header() {
-  const { isTokenValid, logout } = useContext(TokenContext)!;
+  const { isTokenValid, logout } = useContext(TokenContext);
   const navigate = useNavigate();
 
   useEffect(() => {

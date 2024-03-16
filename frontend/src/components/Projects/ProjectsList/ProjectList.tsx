@@ -6,7 +6,7 @@ import TokenContext from "../../../context/TokenContext";
 
 function ProjectList() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const { logout, token, isTokenValid } = useContext(TokenContext)!;
+  const { logout, token, isTokenValid } = useContext(TokenContext);
   const navigate = useNavigate();
 
   useEffect(() => {

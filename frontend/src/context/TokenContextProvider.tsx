@@ -1,17 +1,20 @@
-import { useState, useEffect, useCallback } from "react";
-import Cookies from "js-cookie";
+import { useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import TokenContext from "./TokenContext";
 
-const TokenContextProvider = ({ children }: { children: React.ReactNode }) => {
-  const [token, setToken] = useState<string>("");
+interface TokenContextProviderProps {
+  children: React.ReactNode;
+}
+
+const TokenContextProvider = ({ children }: TokenContextProviderProps) => {
+  const [token, setToken] = useState<string | null>();
 
   const login = (newToken: string) => {
     setToken(newToken);
   };
 
   const logout = () => {
-    setToken("");
+    setToken(null);
   };
 
   const isTokenValid = () => {

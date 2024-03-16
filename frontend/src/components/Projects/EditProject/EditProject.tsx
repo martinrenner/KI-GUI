@@ -11,7 +11,7 @@ interface FormData {
 
 function ProjectEdit() {
   const { project_id } = useParams();
-  const { token, isTokenValid } = useContext(TokenContext)!;
+  const { token, isTokenValid } = useContext(TokenContext);
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     name: "",

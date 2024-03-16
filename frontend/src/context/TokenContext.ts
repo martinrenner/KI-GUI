@@ -7,6 +7,6 @@ interface TokenContextType {
     isTokenValid: () => boolean,
 }
 
-const TokenContext = React.createContext<TokenContextType | null>(null);
+const TokenContext = React.createContext({} as TokenContextType);
 
 export default TokenContext;

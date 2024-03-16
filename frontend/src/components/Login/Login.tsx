@@ -21,7 +21,7 @@ function LoginForm() {
   });
 
   const navigate = useNavigate();
-  const { login } = useContext(TokenContext)!;
+  const { login } = useContext(TokenContext);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [errorMessage, setErrorMessage] = useState<string>("");
