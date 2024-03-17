@@ -942,7 +942,7 @@ The user model defines the structure of user data within the database. It includ
   ```
 </details>
 
-## User Schema
+## User Schema
 
 Pydantic schemas are used for request validation, serialization, and documentation purposes. The UserCreate schema ensures that incoming data for user registration is valid and meets the application's requirements. The UserRead schema is designed for data output, omitting sensitive information like passwords.
 
@@ -1420,7 +1420,7 @@ By integrating these components, you establish a secure authentication system th
 
 Integrating authentication into your project management system ensures that users can only access projects they are authorized to view, create, modify, or delete. This section outlines how to implement project-specific authentication and authorization using FastAPI, Pydantic, and SQLAlchemy, ensuring secure access control to project resources based on user sessions.
 
-## Project Router
+## Project Router
 
 The project router defines the endpoints for creating, retrieving, updating, and deleting project resources. Authentication is enforced by extracting the user's identity from the access token, which is then used to validate access permissions for the requested operations.
 
@@ -1792,7 +1792,7 @@ The registration form is essential for capturing new user details and storing th
 
 This form includes input change handling, form validation to ensure data integrity before submission, and navigation to the login page upon successful registration.
 
-## Login Form
+## Login Form
 
 The login form allows existing users to authenticate by providing their email and password. Similar to the registration form, it employs useState for form state management and React Bootstrap for the user interface.
 
@@ -1935,7 +1935,7 @@ The login form allows existing users to authenticate by providing their email an
 
 The login form includes functionality to validate user input and navigate to the projects page upon successful authentication.
 
-## Creating Login and Register Routes
+## Creating Login and Register Routes
 
 To integrate these forms into your application, you'll need to modify your React Router setup to include routes for the login and registration pages. This ensures that users can navigate to these forms within your application.
 
@@ -1986,7 +1986,7 @@ Utilizing the Context API in React is a strategic approach for managing global s
 
 The Context API is a React feature that enables you to exchange unique details and assists in solving prop-drilling from all levels of your application. It's designed to share data that can be considered “global” for a tree of React components, such as the current authenticated user, theme, or preferred language. Hence, for managing authentication tokens, which are needed across many components in an application, Context API proves to be particularly useful.
 
-## TokenContext
+## TokenContext
 
 First, create a folder named `/context` inside `/frontend/src/components`. In this new folder, you'll create two files: `TokenContext.ts` and `TokenContextProvider.tsx`.
 
@@ -2542,7 +2542,7 @@ These features collectively contribute to a more informative and user-friendly A
 
 FastAPI not only facilitates the creation of API documentation on a broad scale but also offers detailed documentation at the endpoint level. Through the use of Python docstrings, developers can provide extensive information about each API endpoint, enhancing the understanding and usability of the API for consumers. Below is a guide on how to document an endpoint within your FastAPI application.
 
-### Usage
+### Usage
 
 To document individual API endpoints, FastAPI utilizes Python docstrings. These docstrings allow you to include a description of the endpoint's purpose, its parameters, and what it returns. Here’s an example that illustrates how to document the process of creating a new user in your system:
 
