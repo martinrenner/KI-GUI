@@ -32,13 +32,13 @@ We've prepared checkpoints throughout the course to ensure that no student feels
 8. [Edit Project]
 9. [View Project]
 10. [Create Project]
-11. [Register User]
-12. [Login User]
-13. [Project Auth]
-14. [Register and Login Form]
-15. [Token Context]
-16. [Forms with Token and Auth Router]
-17. [Docs]
+11. [Register User Endpoint](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#11-register-user-endpoint) - Download: [Register_user](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/11-register_user.zip)
+12. [Login User Endpoint](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#12-login-user-endpoint) - Download: [Login_user](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/12-login_user.zip)
+13. [Project Authentication](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#13-project-authentication) - Download: [Project_auth](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/13-project_auth.zip)
+14. [Register and Login Form](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#14-register-and-login-forms) - Download: [Register_and_login_form](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/14-register_and_login_form.zip)
+15. [Creating Token Context with React Context API](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#15-creating-token-context-with-react-context-api) - Download: [Token_context](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/15-token_context.zip)
+16. [Adding Token To CRUD Forms and Creating Auth Router Pages](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#16-adding-token-to-crud-forms-and-creating-auth-router-pages) - Download: [Forms_with_token_and_auth_router](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/16-forms_with_token_and_auth_router.zip)
+17. [Docs](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#17-fastapi-documentation) - Download: [Docs](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/17-docs.zip)
 
 # 0. Creating a Web Application with Python FastAPI, React (Vite), Docker, PostgreSQL, and pgAdmin
 > [!IMPORTANT]
