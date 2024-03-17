@@ -56,11 +56,15 @@ FastAPI powers our application's backend, offering high performance and easy-to-
 2. Create a `main.py` file for your FastAPI application.
 3. Initialize FastAPI instance in `main.py` with following code:
 
-```python
-from fastapi import FastAPI
-
-app = FastAPI()
-```
+<details>
+  <summary>FastAPI Init Code</summary>
+  
+  ```python
+  from fastapi import FastAPI
+  
+  app = FastAPI()
+  ```
+</details>
 
 ## Frontend Setup with React and Vite
 
@@ -79,136 +83,152 @@ Docker simplifies deployment and ensures consistency across different environmen
 
 In the FastAPI project root `/backend`, create a `Dockerfile` with:
 
-```Dockerfile
-FROM python:3.12-slim
+<details>
+  <summary>Python Dockerfile Code</summary>
 
-WORKDIR /backend
-
-COPY ./requirements.txt /backend
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
-
-COPY ./src /backend/src
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-```
+  ```Dockerfile
+  FROM python:3.12-slim
+  
+  WORKDIR /backend
+  
+  COPY ./requirements.txt /backend
+  RUN pip install --no-cache-dir --upgrade -r requirements.txt
+  
+  COPY ./src /backend/src
+  
+  CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+  ```
+</details>
 
 ### Dockerizing React with Vite
 
 Create a `Dockerfile` in the React project root `/frontend`:
 
-```Dockerfile
-FROM node:20-alpine
-
-WORKDIR /frontend
-
-COPY package*.json .
-RUN npm install
-
-COPY . .
-
-EXPOSE 5173
-
-CMD ["npm", "run", "dev"]
-```
+<details>
+  <summary>React Dockerfile Code</summary>
+  
+  ```Dockerfile
+  FROM node:20-alpine
+  
+  WORKDIR /frontend
+  
+  COPY package*.json .
+  RUN npm install
+  
+  COPY . .
+  
+  EXPOSE 5173
+  
+  CMD ["npm", "run", "dev"]
+  ```
+</details>
 
 Modify `vite.config.ts` for a fixed port:
 
-```javascript
-import { defineConfig } from 'vite'
-import react from '@vitejs/plugin-react-swc'
-
-// https://vitejs.dev/config/
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    watch: {
-      usePolling: true,
-    },
-    host: true,
-    strictPort: true,
-    port: 5173
-  }
-})
-```
+<details>
+  <summary>Vite Docker Config Code</summary>
+  
+  ```javascript
+  import { defineConfig } from 'vite'
+  import react from '@vitejs/plugin-react-swc'
+  
+  // https://vitejs.dev/config/
+  export default defineConfig({
+    plugins: [react()],
+    server: {
+      watch: {
+        usePolling: true,
+      },
+      host: true,
+      strictPort: true,
+      port: 5173
+    }
+  })
+  ```
+</details>
 
 ## Docker Compose Integration
 
 Use docker-compose.yml at the project root to define services for FastAPI, React, PostgreSQL, and pgAdmin:
 
-```Dockerfile
-version: "3.9"
-
-services:
-  # FastAPI Application
-  fastapi_app:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    container_name: gui-fastapi_app
-    ports:
-      - "8000:8000"
-    volumes:
-      - type: bind
-        source: ./backend/src
-        target: /backend/src
-    env_file:
-      - .env
-    depends_on:
-      - postgres_db-application
-
-  # PostgreSQL Database
-  postgres_db-application:
-    container_name: gui-postgres_db-application
-    image: postgres:16.1-alpine
-    restart: always
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - type: volume
-        source: postgres_db-application-data_volume
-        target: /var/lib/postgresql/data
-
-  # pgAdmin Web Interface
-  pgadmin_web:
-    container_name: gui-pgadmin_web
-    image: dpage/pgadmin4:8.2
-    restart: always
-    environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-    ports:
-      - "5050:80"
-    volumes:
-      - type: volume
-        source: pgadmin_web-data_volume
-        target: /var/lib/pgadmin
-    depends_on:
-      - postgres_db-application
-
-  # React Frontend Application
-  react_app:
-    build: ./frontend
-    container_name: gui-react_app
-    ports:
-      - "5173:5173"
-    depends_on:
-      - fastapi_app
-    volumes:
-      - type: bind
-        source: ./frontend
-        target: /frontend
-      - type: volume
-        source: react_app-node_modules-data_volume
-        target: /frontend/node_modules
-
-volumes:
-  postgres_db-application-data_volume:
-  pgadmin_web-data_volume:
-  react_app-node_modules-data_volume:
-
-```
+<details>
+  <summary>Docker Compose Code</summary>
+  
+  ```Dockerfile
+  version: "3.9"
+  
+  services:
+    # FastAPI Application
+    fastapi_app:
+      build:
+        context: ./backend
+        dockerfile: Dockerfile
+      container_name: gui-fastapi_app
+      ports:
+        - "8000:8000"
+      volumes:
+        - type: bind
+          source: ./backend/src
+          target: /backend/src
+      env_file:
+        - .env
+      depends_on:
+        - postgres_db-application
+  
+    # PostgreSQL Database
+    postgres_db-application:
+      container_name: gui-postgres_db-application
+      image: postgres:16.1-alpine
+      restart: always
+      environment:
+        POSTGRES_USER: ${POSTGRES_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DB}
+      volumes:
+        - type: volume
+          source: postgres_db-application-data_volume
+          target: /var/lib/postgresql/data
+  
+    # pgAdmin Web Interface
+    pgadmin_web:
+      container_name: gui-pgadmin_web
+      image: dpage/pgadmin4:8.2
+      restart: always
+      environment:
+        PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+        PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      ports:
+        - "5050:80"
+      volumes:
+        - type: volume
+          source: pgadmin_web-data_volume
+          target: /var/lib/pgadmin
+      depends_on:
+        - postgres_db-application
+  
+    # React Frontend Application
+    react_app:
+      build: ./frontend
+      container_name: gui-react_app
+      ports:
+        - "5173:5173"
+      depends_on:
+        - fastapi_app
+      volumes:
+        - type: bind
+          source: ./frontend
+          target: /frontend
+        - type: volume
+          source: react_app-node_modules-data_volume
+          target: /frontend/node_modules
+  
+  volumes:
+    postgres_db-application-data_volume:
+    pgadmin_web-data_volume:
+    react_app-node_modules-data_volume:
+  
+  ```
+</details>
 
 This docker-compose.yml file defines four services: fastapi, react, db (PostgreSQL), and pgadmin. It specifies the build context, port mappings, and environment variables for each service.
 
@@ -249,36 +269,40 @@ Leveraging a `.env` file for environment variables is crucial for securing and c
 
 1. Create a `.env` file by copying the provided .env.example template: `cp .env.example .env` or copy following code
 
-```bash
-# FastAPI Middleware
-
-CORS_ALLOWED_ORIGIN=
-CORS_ALLOWED_METHODS=
-CORS_ALLOWED_HEADERS=
-CORS_ALLOW_CREDENTIALS=
-CORS_MAX_AGE=
-
-
-# Auth for JWT
-
-JWT_SECRET_KEY=
-JWT_ALGORITHM=
-JWT_ACCESS_TOKEN_EXPIRE_MINUTES=
-JWT_REFRESH_TOKEN_EXPIRE_DAYS=
-
-
-# Postgres
-
-POSTGRES_USER=
-POSTGRES_PASSWORD=
-POSTGRES_DB=
-
-
-# pgAdmin
-
-PGADMIN_DEFAULT_EMAIL=
-PGADMIN_DEFAULT_PASSWORD=
-```
+<details>
+  <summary>Env Code</summary>
+  
+  ```bash
+  # FastAPI Middleware
+  
+  CORS_ALLOWED_ORIGIN=
+  CORS_ALLOWED_METHODS=
+  CORS_ALLOWED_HEADERS=
+  CORS_ALLOW_CREDENTIALS=
+  CORS_MAX_AGE=
+  
+  
+  # Auth for JWT
+  
+  JWT_SECRET_KEY=
+  JWT_ALGORITHM=
+  JWT_ACCESS_TOKEN_EXPIRE_MINUTES=
+  JWT_REFRESH_TOKEN_EXPIRE_DAYS=
+  
+  
+  # Postgres
+  
+  POSTGRES_USER=
+  POSTGRES_PASSWORD=
+  POSTGRES_DB=
+  
+  
+  # pgAdmin
+  
+  PGADMIN_DEFAULT_EMAIL=
+  PGADMIN_DEFAULT_PASSWORD=
+  ```
+</details>
 
 ## Docker Compose
 
@@ -308,86 +332,102 @@ This tutorial demonstrates how to integrate a PostgreSQL database into a FastAPI
 
 First, create a `database.py` file in `/backend` to set up the database connection and session management. This file utilizes environment variables to configure the database connection string securely.
 
-```python
-import os
-from fastapi import HTTPException
-from sqlmodel import Session, create_engine
-from sqlalchemy.exc import SQLAlchemyError
-
-POSTGRES_USER = os.getenv("POSTGRES_USER")
-POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
-POSTGRES_DB = os.getenv("POSTGRES_DB")
-
-DATABASE_URL = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@gui-postgres_db-application/{POSTGRES_DB}"
-
-engine = create_engine(DATABASE_URL)
-
-
-def get_session():
-    with Session(engine) as session:
-        yield session
-
-
-def commit_and_handle_exception(session: Session):
-    try:
-        session.commit()
-    except SQLAlchemyError as e:
-        raise HTTPException(status_code=500, detail="Database error")
-
-
-def refresh_and_handle_exception(session: Session, *objects):
-    try:
-        for obj in objects:
-            session.refresh(obj)
-    except SQLAlchemyError as e:
-        raise HTTPException(status_code=500, detail="Database error")
-```
+<details>
+  <summary>Database Code</summary>
+  
+  ```python
+  import os
+  from fastapi import HTTPException
+  from sqlmodel import Session, create_engine
+  from sqlalchemy.exc import SQLAlchemyError
+  
+  POSTGRES_USER = os.getenv("POSTGRES_USER")
+  POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
+  POSTGRES_DB = os.getenv("POSTGRES_DB")
+  
+  DATABASE_URL = f"postgresql+psycopg2://{POSTGRES_USER}:{POSTGRES_PASSWORD}@gui-postgres_db-application/{POSTGRES_DB}"
+  
+  engine = create_engine(DATABASE_URL)
+  
+  
+  def get_session():
+      with Session(engine) as session:
+          yield session
+  
+  
+  def commit_and_handle_exception(session: Session):
+      try:
+          session.commit()
+      except SQLAlchemyError as e:
+          raise HTTPException(status_code=500, detail="Database error")
+  
+  
+  def refresh_and_handle_exception(session: Session, *objects):
+      try:
+          for obj in objects:
+              session.refresh(obj)
+      except SQLAlchemyError as e:
+          raise HTTPException(status_code=500, detail="Database error")
+  ```
+</details>
 
 ## Model Definitions
 
 Next, define your database models using SQLModel in a `models.py` file. Here's an example with a simple `Test` model.
 
-```python
-from sqlmodel import Field, SQLModel, BIGINT
-from sqlalchemy import Column
-
-
-class Test(SQLModel, table=True):
-    __tablename__ = "test"
-
-    id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
-
-```
+<details>
+  <summary>Model Code</summary>
+  
+  ```python
+  from sqlmodel import Field, SQLModel, BIGINT
+  from sqlalchemy import Column
+  
+  
+  class Test(SQLModel, table=True):
+      __tablename__ = "test"
+  
+      id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
+  
+  ```
+</details>
 
 ## Database Initialization
 
 Handle database initialization in a `database_init.py` file, ensuring tables are created if they don't exist.
 
-```python
-from database import engine
-from sqlmodel import SQLModel
-
-def initialize_database():
-    SQLModel.metadata.create_all(engine)
-```
+<details>
+  <summary>Database Init Code</summary>
+  
+  ```python
+  from database import engine
+  from sqlmodel import SQLModel
+  
+  def initialize_database():
+      SQLModel.metadata.create_all(engine)
+  ```
+</details>
 
 ## Application Entry Point
 
 In your FastAPI application's entry point, typically `main.py`, ensure you initialize the database by calling the `initialize_database` function at the start.
 
-```python
-from fastapi import FastAPI
-from database_init import initialize_database
-
-app = FastAPI()
-
-# Database Initialization
-initialize_database()
-
-@app.get("/")
-def root():
-    return {"message": "Hello World"}
-```
+<details>
+  <summary>Main Code</summary>
+  
+  ```python
+  from fastapi import FastAPI
+  from database_init import initialize_database
+  
+  app = FastAPI()
+  
+  # Database Initialization
+  initialize_database()
+  
+  @app.get("/")
+  def root():
+      return {"message": "Hello World"}
+  ```
+</details>
 
 By following these steps, your FastAPI application will be configured to connect to a PostgreSQL database using SQLModel for ORM, with a clear and maintainable project structure.
 
