@@ -21,9 +21,9 @@ This full-stack web application is designed to streamline the management of your
 
 We've prepared checkpoints throughout the course to ensure that no student feels lost. If you find yourself needing to use one of these checkpoints, please download the specified file, unzip it, and copy the .env file into your new checkpoint project. Additionally, it's necessary to delete any old containers, images, and volumes to prevent conflicts due to duplicate names.
 
-0. [Installation](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#0-creating-a-web-application-with-python-fastapi-react-vite-docker-postgresql-and-pgadmin)
-1. [Setup](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#1-running-the-application-fastapi-and-react)
-2. [Database](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#2-setting-up-database-connection-in-fastapi-with-postgresql-and-sqlmodel)
+0. [Creating a Web Application with Python FastAPI, React(vite), Docker, PostgreSQL, and pgAdmin](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#0-creating-a-web-application-with-python-fastapi-react-vite-docker-postgresql-and-pgadmin)
+1. [Running the Application](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#1-running-the-application-fastapi-and-react) - Download: [Setup](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/1-setup.zip)
+2. [Setting Up Database Connection in FastAPI with PostgreSQL and SQLModel](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#2-setting-up-database-connection-in-fastapi-with-postgresql-and-sqlmodel) - Download: [Database](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/2-database.zip)
 3. [Models]
 4. [Create and Read]
 5. [Crud]
@@ -215,11 +215,11 @@ This docker-compose.yml file defines four services: fastapi, react, db (PostgreS
 # 1. Running the Application: FastAPI and React
 
 > [!TIP]
-> Download checkpoint: [Setup](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/1-setup.zip)
+> Available checkpoint: [Setup](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/1-setup.zip)
 
 This guide outlines steps to run application with FastAPI and React. Before we compose our full-stack application, there are several step we need to do.
 
-## Setup python virtual environment.
+## Setup Python Virtual Environment.
 > [!NOTE]
 > While Docker encapsulates our environment, setting up a local virtual environment is beneficial for IDE-based IntelliSense and code completion.
 
@@ -231,7 +231,7 @@ This guide outlines steps to run application with FastAPI and React. Before we c
 3. Install FastAPI and Uvicorn with `pip install fastapi uvicorn`.
 4. Freeze requirements for Docker `pip freeze > requirements.txt`
 
-## Setup react
+## Setup React
 > [!NOTE]
 > Note: Similar to the Python virtual environment, local installation of Node modules aids in providing IntelliSense for development.
 
@@ -280,7 +280,7 @@ PGADMIN_DEFAULT_EMAIL=
 PGADMIN_DEFAULT_PASSWORD=
 ```
 
-## Docker compose
+## Docker Compose
 
 Docker Compose orchestrates the containers, ensuring they are built and started together.
 
@@ -300,7 +300,7 @@ This command will initiate the building and running of the services defined in y
 # 2. Setting Up Database Connection in FastAPI with PostgreSQL and SQLModel
 
 > [!TIP]
-> Download checkpoint: [Database](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/2-database.zip)
+> Available checkpoint: [Database](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/2-database.zip)
 
 This tutorial demonstrates how to integrate a PostgreSQL database into a FastAPI application using SQLModel for ORM, ensuring a structured, clear, and maintainable codebase.
 
@@ -895,27 +895,376 @@ class ProjectUpdatePartial(ProjectBase):
         return value
 ```
 
-# Autentizace (JWT)
+# 11. 
 
-## FastAPI
+> [!TIP]
+> Available checkpoint: [Register_user](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/11-register_user.zip)
+
+# 12.
+
+> [!TIP]
+> Available checkpoint: [Login_user](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/12-login_user.zip)
+
+# 13.
+
+> [!TIP]
+> Available checkpoint: [Project_auth](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/13-project_auth.zip)
+
+# 14.
+
+> [!TIP]
+> Available checkpoint: [Register_and_login_form](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/14-register_and_login_form.zip)
+
+# 15. Creating Token Context with React Context API
+
+> [!TIP]
+> Available checkpoint: [Token_context](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/15-token_context.zip)
+
+Utilizing the Context API in React is a strategic approach for managing global state, such as user authentication tokens. This method provides a more efficient and straightforward way to pass data through the component tree without having to manually prop-drill from parent to child components. In this section, we'll dive into how to leverage the Context API for storing and managing user access tokens across your React application.
+
+## What is ContextAPI?
+
+The Context API is a React feature that enables you to exchange unique details and assists in solving prop-drilling from all levels of your application. It's designed to share data that can be considered “global” for a tree of React components, such as the current authenticated user, theme, or preferred language. Hence, for managing authentication tokens, which are needed across many components in an application, Context API proves to be particularly useful.
+
+## TokenContext
+
+First, create a folder named `/context` inside `/frontend/src/components`. In this new folder, you'll create two files: `TokenContext.ts` and `TokenContextProvider.tsx`.
+
+`TokenContext.ts` will define the context for your token, including its type and associated functions for login, logout, and checking the token's validity.
+
+```typescript
+import React from "react";
+
+interface TokenContextType {
+    token: string;
+    login: (newToken: string) => void,
+    logout: () => void,
+    isTokenValid: () => boolean,
+}
+
+const TokenContext = React.createContext({} as TokenContextType);
+
+export default TokenContext;
+
+```
+
+## TokenContextProvider
+
+The `TokenContextProvider.tsx` component will utilize state management to store the token and provide functions to modify this state, including login, logout, and a method to check if the token is still valid.
+
+```typescript
+import { useState } from "react";
+import { jwtDecode } from "jwt-decode";
+import TokenContext from "./TokenContext";
+
+interface TokenContextProviderProps {
+  children: React.ReactNode;
+}
+
+const TokenContextProvider = ({ children }: TokenContextProviderProps) => {
+  const [token, setToken] = useState<string | null>();
+
+  const login = (newToken: string) => {
+    setToken(newToken);
+  };
+
+  const logout = () => {
+    setToken(null);
+  };
+
+  const isTokenValid = () => {
+    try {
+      const decodedToken = token ? jwtDecode(token) : null;
+      if (decodedToken && decodedToken.exp) {
+        const currentTime = Date.now() / 1000;
+        return decodedToken.exp > currentTime;
+      }
+    } catch (error) {
+      logout();
+    }
+    return false;
+  };
+
+  return (
+    <TokenContext.Provider value={{ token, login, logout, isTokenValid }}>
+      {children}
+    </TokenContext.Provider>
+  );
+};
+
+export default TokenContextProvider;
+
+```
+
+## Access TokenContextProvider
+
+To ensure that the `TokenContextProvider` is accessible throughout your application, wrap your application with the TokenContextProvider in your main App component. In this case we will wrap each Routes in React Router.
+
+```typescript
+function App() {
+  return (
+    <BrowserRouter>
+      <TokenContextProvider>
+        <Routes>
+            // Define your routes here
+        </Routes>
+      </TokenContextProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;
+
+```
+
+## Login with ContextAPI
+
+To utilize the ContextAPI in a login component, modify the login form handling to include the useContext hook to access the `login` function from `TokenContext`. This way, once the user successfully logs in, you can update the context with the new token.
+
+```typescript
+import { useContext } from "react"; 
+import TokenContext from "../../context/TokenContext";
+// Other necessary imports
+
+//Form Interface
+
+function LoginForm() {
+  const { login } = useContext(TokenContext);  //Accessing login function from TokenContext
+
+
+  //Other code...
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (validateForm()) {
+      fetch("http://localhost:8000/auth/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          username: formData.email,
+          password: formData.password,
+        }),
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            setErrorMessage("Login failed");
+          }
+        })
+        .then((data) => {
+          login(data.access_token); //Update the context with the new token
+          navigate("/projects");
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          setErrorMessage("An error occurred");
+        });
+    }
+  };
+
+  // Return statement and other component logic...
+}
+
+export default LoginForm;
+```
+
+By adopting this approach, you simplify token management across your React application, enhancing security and user experience by ensuring that sensitive information like authentication tokens are handled efficiently and securely.
+
+# 16. Adding Token To CRUD Forms and Creating Auth Router Pages
+
+> [!TIP]
+> Available checkpoint: [Forms_forms_with_token_and_auth_router](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/16-forms_with_token_and_auth_router.zip)
+
+This documentation segment elaborates on integrating JWT (JSON Web Token) authentication into CRUD (Create, Read, Update, Delete) operations in a React application and establishing authenticated routes using React Router. To ensure security and authorization, it's crucial that each API call requiring user authentication carries a JWT token. Additionally, setting up authentication-specific pages in React enhances the application's security by managing access to certain pages based on the user's authentication status.
+
+## CRUD Forms
+
+In scenarios where the API demands JWT tokens for authentication, it's vital to append this token to every API call. This is particularly important for requests made through the project router in a React application. Below is a step-by-step guide to achieve this:
+
+```typescript
+//other imports
+import React, { ..., useContext } from "react";
+import TokenContext from "../../../context/TokenContext";
+
+//other code
+//definition of component
+const { token, isTokenValid } = useContext(TokenContext);
+
+//function (in this case handleSubmit)
+    fetch(`http://localhost:8000/project`, {
+       method: "POST",
+       headers: {
+         "Content-Type": "application/json",
+         Authorization: `Bearer ${token}`,
+       },
+       body: JSON.stringify(formData),
+     })
+       .then((response) => {
+         if (!response.ok) {
+           throw new Error("Failed to create project");
+         }
+         return response.json();
+       })
+       .then((data) => {
+         navigate(`/projects/${data.id}`);
+       })
+       .catch((error) => {
+         console.error("Error:", error);
+       });
+   };
+```
+
+In this example, we added import for our ContextAPI that provides JWT token. Then we added import for UseContext hook. Finnaly we added authorization to header of request.
+
+## Auth Page Component
+
+Given that React Router does not inherently provide an authenticated route feature, it's necessary to implement an authentication mechanism manually. This can be achieved by creating an "Authenticated" component that wraps around components requiring authentication, as shown below:
+
+```typescript
+import { useContext, useEffect } from "react";
+ import { useNavigate } from "react-router-dom";
+ import TokenContext from "../../context/TokenContext";
+
+ function Authenticated({ children }: { children: React.ReactNode }) {
+   const { isTokenValid, logout } = useContext(TokenContext)!;
+   const navigate = useNavigate();
+
+   useEffect(() => {
+     if (!isTokenValid()) {
+       logout();
+       navigate("/login", { replace: true });
+     }
+   }, [isTokenValid, logout, navigate]);
+
+   return <>{children}</>;
+ }
+
+ export default Authenticated;
+```
+
+This component checks the validity of the token and, if found invalid, redirects the user to the login page, ensuring that only authenticated users can access certain parts of the application.
+
+## Modify React Router
+
+To utilize the Authenticated component effectively, modifications to the React Router setup are required. This ensures that specific routes are protected and accessible only to authenticated users:
+
+```typescript
+function App() {
+  return (
+    <BrowserRouter>
+      <TokenContextProvider>
+          <Routes>
+            <Route path=":project_id" element={
+                  <Authenticated>
+                    <ProjectView />
+                  </Authenticated>
+            } />
+        </Route>
+        </Routes>
+      </TokenContextProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;
+
+```
+
+By wrapping the ProjectView component (or any other component) with the Authenticated component within the route definition, you ensure that access is granted only to users with a valid token. This mechanism enhances the security and integrity of the application by preventing unauthorized access to sensitive information or functionalities.
+
+This approach to integrating token authentication into CRUD operations and creating authenticated routes in React applications serves as a foundation for developing secure, efficient, and user-friendly web applications.
+
+# 17. FastAPI Documentation 
+
+> [!TIP]
+> Available checkpoint: [Docs](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/17-docs.zip)
+
+This section of the documentation focuses on enhancing the project documentation capabilities using FastAPI's built-in support for SwaggerUI. FastAPI provides a robust and interactive interface for documenting your API, allowing both developers and users to understand and interact with your API easily. The included guide and example show how to leverage these documentation features to improve your API's usability and accessibility.
+
+## FastAPI Init Docs
+
+FastAPI allows you to extensively customize your API documentation through a variety of options. These options include setting a title, summary, description, version, and categorizing your API endpoints with tags. Below, we delve into how each of these can be utilized to enhance your API documentation.
+
+### Usage
+
+To improve the clarity and effectiveness of your API documentation, you can specify details such as the title, summary, description, version, and organize your endpoints with tags. Here’s how to use these options in your FastAPI application:
 
 ```python
-class Project(SQLModel, table=True):
-    __tablename__ = "project"
+description = """
+ ## Usage and explanation
+ 1. Register user `[POST] /user`
+ 2. Login user `[POST] /auth/token` (create token)
+ 3. Create project `[POST] /project`
+ 4. Get projects `[GET] /project`
+ """
 
-    id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
-    name: str
-    description: str
-    is_finished: bool = False
-    user_id: int = Field(foreign_key="user.id")
+ tags_metadata = [
+     {
+         "name": "Auth",
+         "description": "Operations with authentication. **No authorization required.**",
+     },
+     {
+         "name": "User",
+         "description": "Operations with users. **No authorization required.**",
+     },
+     {
+         "name": "Project",
+         "description": "Operations with projects. Basic CRUD operations. **Authorization required.**",
+     },
+ ]
 
-
-class User(SQLModel, table=True):
-    __tablename__ = "user"
-
-    id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
-    name: str
-    surname: str
-    email: str = Field(sa_column=Column(VARCHAR, unique=True))
-    hashed_password: str
+ app = FastAPI(
+     title="GUI APP",
+     summary="GUI APP - Project Manager Documentation",
+     description=description,
+     version="1.0.0",
+     openapi_tags=tags_metadata,
+ )
 ```
+
+In this setup:
+
+- **Title:** "GUI APP" sets the overall title of your API documentation, which is visible at the top of your SwaggerUI page.
+- **Summary:** Provides a concise overview of what your API does, in this case, serving as a project manager documentation tool.
+- **Description:** Here, you can go into more detail about how to use the API, including step-by-step instructions or any additional information that users might find useful.
+- **Version:** Denotes the current version of your API, which is essential for users to be aware of the API's maturity and stability.
+- **Tags:** By organizing endpoints into categories (tags), you make your API more navigable and easier to understand. Each tag can have a name and a description, providing context for the grouped endpoints.
+
+These features collectively contribute to a more informative and user-friendly API documentation interface, enhancing the experience for developers and end-users alike.
+
+## FastAPI Endpoint Docs
+
+FastAPI not only facilitates the creation of API documentation on a broad scale but also offers detailed documentation at the endpoint level. Through the use of Python docstrings, developers can provide extensive information about each API endpoint, enhancing the understanding and usability of the API for consumers. Below is a guide on how to document an endpoint within your FastAPI application.
+
+### Usage
+
+To document individual API endpoints, FastAPI utilizes Python docstrings. These docstrings allow you to include a description of the endpoint's purpose, its parameters, and what it returns. Here’s an example that illustrates how to document the process of creating a new user in your system:
+
+```python
+@user_router.post("/", response_model=UserRead)
+def create_user(user_create: UserCreate, session: db_dependency):
+    """
+    ## Create a new user (**register**)
+
+    This endpoint will create a new user in the database.
+
+    - **user_create**: User object
+
+    Returns:
+    - `user`: User object
+    """
+    user = user_service.insert_user_db(user_create, session)
+    return UserRead.from_user(user)
+```
+
+In this documentation:
+
+- **Brief Description:** At the beginning, a brief overview of the endpoint's purpose is provided, in this case, creating (or registering) a new user.
+- **Parameters:** Detailed descriptions of the parameters that the endpoint accepts. This includes their types, purposes, and any other relevant information. For the create_user endpoint, it accepts a UserCreate object.
+- **Returns:** Describes what the endpoint returns upon a successful call. In the example, it returns a UserRead object, which includes information about the newly created user.
+
+By incorporating detailed docstrings for your endpoints, you not only enrich the auto-generated API documentation but also provide a more informative and guided experience for API consumers. This practice enhances the discoverability and clarity of API functionalities, leading to better integration and utilization of your API.
