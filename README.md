@@ -2371,38 +2371,459 @@ This documentation segment elaborates on integrating JWT (JSON Web Token) authen
 In scenarios where the API demands JWT tokens for authentication, it's vital to append this token to every API call. This is particularly important for requests made through the project router in a React application. Below is a step-by-step guide to achieve this:
 <details>
   <summary>CRUD Components Code</summary>
-  
+
+  ### Create Project
   ```typescript
-  //other imports
-  import React, { ..., useContext } from "react";
+  import React, { ChangeEvent, useState, useContext } from "react";
+  import { Button, Form, FormControl } from "react-bootstrap";
+  import { useNavigate } from "react-router-dom";
   import TokenContext from "../../../context/TokenContext";
   
-  //other code
-  //definition of component
-  const { token, isTokenValid } = useContext(TokenContext);
+  interface FormData {
+    name: string;
+    description: string;
+  }
   
-  //function (in this case handleSubmit)
+  function ProjectCreate() {
+    const [formData, setFormData] = useState<FormData>({
+      name: "",
+      description: "",
+    });
+  
+    const navigate = useNavigate();
+    const { token } = useContext(TokenContext);
+  
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+  
       fetch(`http://localhost:8000/project`, {
-         method: "POST",
-         headers: {
-           "Content-Type": "application/json",
-           Authorization: `Bearer ${token}`,
-         },
-         body: JSON.stringify(formData),
-       })
-         .then((response) => {
-           if (!response.ok) {
-             throw new Error("Failed to create project");
-           }
-           return response.json();
-         })
-         .then((data) => {
-           navigate(`/projects/${data.id}`);
-         })
-         .catch((error) => {
-           console.error("Error:", error);
-         });
-     };
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to create project");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          navigate(`/projects/${data.id}`);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    };
+  
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    };
+  
+    return (
+      <>
+        <h1>Create Project</h1>
+        <Form onSubmit={handleSubmit}>
+          <Form.Group>
+            <Form.Label>Project Name</Form.Label>
+            <FormControl
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Description</Form.Label>
+            <FormControl
+              as="textarea"
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+            />
+          </Form.Group>
+          <Button variant="primary" type="submit" className="mt-3">
+            Create
+          </Button>
+        </Form>
+      </>
+    );
+  }
+  
+  export default ProjectCreate;
+
+  ```
+
+  ### Edit Project
+  ```typescript
+  import { ChangeEvent, useEffect, useState, useContext } from "react";
+  import { Button, Form, FormControl } from "react-bootstrap";
+  import { useNavigate, useParams } from "react-router-dom";
+  import TokenContext from "../../../context/TokenContext";
+  
+  interface FormData {
+    name: string;
+    description: string;
+    is_finished: boolean;
+  }
+  
+  function ProjectEdit() {
+    const { project_id } = useParams();
+    const { token, isTokenValid } = useContext(TokenContext);
+    const navigate = useNavigate();
+    const [formData, setFormData] = useState<FormData>({
+      name: "",
+      description: "",
+      is_finished: false,
+    });
+  
+    useEffect(() => {
+      if (isTokenValid()) {
+        fetch(`http://localhost:8000/project/${project_id}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+          .then((response) => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error("Failed to fetch project data");
+            }
+          })
+          .then((data) => {
+            setFormData({
+              name: data.name,
+              description: data.description,
+              is_finished: data.is_finished,
+            });
+          })
+          .catch((error) => {
+            console.error("Error fetching project data:", error.message);
+          });
+      }
+    }, [project_id, isTokenValid, token, navigate]);
+  
+    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+  
+      fetch(`http://localhost:8000/project/${project_id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(formData),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error("Failed to edit project");
+          }
+          return response.json();
+        })
+        .then((data) => {
+          navigate(`/projects/${data.id}`);
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+        });
+    };
+  
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    };
+  
+    return (
+      <>
+        <h1>Edit Project</h1>
+        <Form onSubmit={handleSubmit}>
+          <Form.Group>
+            <Form.Label>Project Name</Form.Label>
+            <FormControl
+              type="text"
+              name="name"
+              value={formData.name}
+              onChange={handleInputChange}
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Label>Description</Form.Label>
+            <FormControl
+              as="textarea"
+              name="description"
+              value={formData.description}
+              onChange={handleInputChange}
+            />
+          </Form.Group>
+          <Form.Group>
+            <Form.Check
+              type="checkbox"
+              label="Finished"
+              name="is_finished"
+              checked={formData.is_finished}
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  is_finished: e.target.checked,
+                })
+              }
+            />
+          </Form.Group>
+          <Button variant="primary" type="submit" className="mt-3">
+            Update
+          </Button>
+        </Form>
+      </>
+    );
+  }
+  
+  export default ProjectEdit;
+
+  ```
+
+  ### List Projects
+  ```typescript
+  import { useEffect, useState, useContext } from "react";
+  import { Project } from "../../../interfaces/Project";
+  import { Button, Card, Col, Row } from "react-bootstrap";
+  import { Link, useNavigate } from "react-router-dom";
+  import TokenContext from "../../../context/TokenContext";
+  
+  function ProjectList() {
+    const [projects, setProjects] = useState<Project[]>([]);
+    const { logout, token, isTokenValid } = useContext(TokenContext);
+    const navigate = useNavigate();
+  
+    useEffect(() => {
+      if (isTokenValid()) {
+        fetch("http://localhost:8000/project/", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+          .then((response) => {
+            if (response.ok) {
+              return response.json();
+            }
+            throw new Error("Failed to fetch projects data");
+          })
+          .then((data) => {
+            setProjects(data);
+          })
+          .catch((error) => {
+            console.error("Error fetching projects data:", error.message);
+          });
+      }
+    }, [token, isTokenValid, navigate]);
+  
+    const delete_project = (project_id: number) => {
+      fetch(`http://localhost:8000/project/${project_id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to delete project");
+          }
+        })
+        .then(() => {
+          setProjects(projects.filter((project) => project.id !== project_id));
+        })
+        .catch((error) => {
+          console.error("Error deleting project:", error);
+        });
+    };
+  
+    const finish_project = (project_id: number) => {
+      fetch(`http://localhost:8000/project/${project_id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ is_finished: true }),
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to finish project");
+          }
+        })
+        .then(() => {
+          setProjects(
+            projects.map((project) =>
+              project.id === project_id
+                ? { ...project, is_finished: true }
+                : project
+            )
+          );
+        })
+        .catch((error) => {
+          console.error("Error finishing project:", error);
+        });
+    };
+  
+    return (
+      <>
+        <Row>
+          <Col xs={10}>
+            <h1>Projects</h1>
+          </Col>
+          <Col xs={2}>
+            <Link to="/projects/create">
+              <Button variant="primary" className="float-end">
+                Create project
+              </Button>
+            </Link>
+          </Col>
+        </Row>
+  
+        {projects.map((project) => (
+          <Card key={project.id} className="mb-3">
+            <Card.Body>
+              <Row>
+                <Col>
+                  <Card.Title>
+                    {project.name} -
+                    {project.is_finished ? " Finished" : " Not finished"}
+                  </Card.Title>
+                </Col>
+                <Col xs={2} className="d-flex justify-content-end gap-2">
+                  {!project.is_finished && (
+                    <Button
+                      variant="success"
+                      onClick={() => finish_project(project.id)}
+                    >
+                      Finish
+                    </Button>
+                  )}
+                  <Link to={`/projects/${project.id}`}>
+                    <Button variant="primary">View</Button>
+                  </Link>
+                  <Link to={`/projects/${project.id}/edit`}>
+                    <Button variant="warning">Edit</Button>
+                  </Link>
+                  <Button
+                    variant="danger"
+                    onClick={() => delete_project(project.id)}
+                  >
+                    Delete
+                  </Button>
+                </Col>
+              </Row>
+  
+              <Card.Text>{project.description}</Card.Text>
+            </Card.Body>
+          </Card>
+        ))}
+      </>
+    );
+  }
+  
+  export default ProjectList;
+  ```
+
+  ### View Project
+  ```typescript
+  import { useEffect, useState, useContext } from "react";
+  import { Project } from "../../../interfaces/Project";
+  import { Link, useNavigate, useParams } from "react-router-dom";
+  import { Button } from "react-bootstrap";
+  import TokenContext from "../../../context/TokenContext";
+  
+  function ProjectView() {
+    const navigate = useNavigate();
+    const { project_id } = useParams();
+    const { token, isTokenValid } = useContext(TokenContext);
+    const [project, setProject] = useState<Project>();
+  
+    useEffect(() => {
+      if (isTokenValid()) {
+        fetch(`http://localhost:8000/project/${project_id}`, {
+          method: "GET",
+          headers: {
+            contentType: "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        })
+          .then((response) => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              throw new Error("Failed to fetch project data");
+            }
+          })
+          .then((data) => {
+            setProject(data);
+          })
+          .catch((error) => {
+            navigate("/projects", { replace: true });
+            console.error("Error fetching project data:", error.message);
+          });
+      }
+    }, [token, isTokenValid, project_id, navigate]);
+  
+    const delete_project = (project_id: number) => {
+      fetch(`http://localhost:8000/project/${project_id}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }).then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to delete project");
+        }
+        navigate("/projects", { replace: true });
+      });
+    };
+  
+    return (
+      <>
+        {project && (
+          <>
+            <h1>{project.name}</h1>
+            <hr />
+            <p>Finished: {project.is_finished ? "Yes" : "No"}</p>
+            <p>{project.description}</p>
+            <Link to={`/projects/${project.id}/edit`}>
+              <Button variant="warning">Edit</Button>
+            </Link>
+            <Button
+              variant="danger"
+              onClick={() => delete_project(project.id)}
+              className="ms-2"
+            >
+              Delete
+            </Button>
+          </>
+        )}
+      </>
+    );
+  }
+  
+  export default ProjectView;
+
   ```
 </details>
 
