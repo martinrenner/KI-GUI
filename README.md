@@ -2,7 +2,7 @@
 
 This full-stack web application is designed to streamline the management of your projects, offering functionalities to create, edit, delete, view, and mark projects as finished. Built with a focus on simplicity and efficiency, it features a secure authentication system using JWT tokens for user, ensuring that only authorized users can access and manage their projects.
 
-- [presentation](https://tinyurl.com/ki-mr-gui-prezentace) (only in Czech)
+- [presentation](https://tinyurl.com/ki-gui-fullstack) (only in Czech)
 
 ## 🛠️ Technologies
 
@@ -401,6 +401,7 @@ Handle database initialization in a `database_init.py` file, ensuring tables are
   ```python
   from database import engine
   from sqlmodel import SQLModel
+  from models import Test
   
   def initialize_database():
       SQLModel.metadata.create_all(engine)
