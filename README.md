@@ -895,25 +895,1022 @@ class ProjectUpdatePartial(ProjectBase):
         return value
 ```
 
-# 11. 
+# 11. Register User Endpoint
 
 > [!TIP]
 > Available checkpoint: [Register_user](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/11-register_user.zip)
 
-# 12.
+
+Implementing a user registration endpoint is a foundational step in creating a secure and functional web application. This tutorial outlines the process of setting up the necessary backend components using FastAPI, SQLAlchemy, and Pydantic to register a new user. The approach includes defining user models, creating Pydantic schemas for data validation, writing a service layer for business logic, and finally, routing to handle user registration requests.
+
+## User Model
+
+The user model defines the structure of user data within the database. It includes fields for user identification, personal information, and authentication details such as the hashed password. This model is essential for creating and querying user records in the database.
+
+```python
+from sqlmodel import Field, SQLModel, BIGINT, VARCHAR
+from sqlalchemy import Column
+
+
+class Test(SQLModel, table=True):
+    __tablename__ = "test"
+
+    id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
+
+
+class Project(SQLModel, table=True):
+    __tablename__ = "project"
+
+    id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
+    name: str
+    description: str
+    is_finished: bool = False
+    user_id: int = Field(foreign_key="user.id")
+
+
+class User(SQLModel, table=True):
+    __tablename__ = "user"
+
+    id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
+    name: str
+    surname: str
+    email: str = Field(sa_column=Column(VARCHAR, unique=True))
+    hashed_password: str
+```
+
+## User Schema
+
+Pydantic schemas are used for request validation, serialization, and documentation purposes. The UserCreate schema ensures that incoming data for user registration is valid and meets the application's requirements. The UserRead schema is designed for data output, omitting sensitive information like passwords.
+
+```python
+from pydantic import BaseModel, ConfigDict, Field, field_validator, EmailStr
+from pydantic_core.core_schema import FieldValidationInfo
+import re
+from models import User
+
+
+class UserBase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class UserCreate(UserBase):
+    name: str = Field(..., examples=["Your name"], min_length=3, max_length=100)
+    surname: str = Field(..., examples=["Your surname"], min_length=3, max_length=100)
+    email: EmailStr = Field(..., examples=["email@example.com"], min_length=3, max_length=100)
+    password: str = Field(..., examples=["MyPassword123"], min_length=3, max_length=100)
+    password_confirmation: str = Field(..., examples=["MyPassword123"], min_length=3, max_length=100)
+
+    @field_validator("name", mode="before")
+    def validate_name(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Name must be between 3 and 100 characters long")
+        return value
+
+    @field_validator("surname", mode="before")
+    def validate_surname(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Surname must be between 3 and 100 characters long")
+        return value
+
+    @field_validator("email", mode="before")
+    def validate_email(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Invalid email length")
+        if re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", value) is None:
+            raise ValueError("Invalid email address")
+        return value
+
+    @field_validator("password", mode="before")
+    def validate_password(cls, value, info: FieldValidationInfo):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Password must be between 3 and 100 characters long")
+        return value
+
+    @field_validator("password_confirmation", mode="before")
+    def validate_password_confirmation(cls, value, info: FieldValidationInfo):
+        password = info.data.get("password")
+        if value != password:
+            raise ValueError("Passwords do not match")
+        return value
+
+
+class UserRead(UserBase):
+    id: int
+    name: str
+    surname: str
+    email: EmailStr
+
+    @classmethod
+    def from_user(cls, user: User):
+        return cls(
+            id=user.id,
+            name=user.name,
+            surname=user.surname,
+            email=user.email,
+        )
+```
+
+## User Service
+
+The user service layer encapsulates the business logic for user management, including the insertion of new user records into the database. This layer abstracts away the complexity of database operations from the routing logic.
+
+```python
+from sqlmodel import Session
+from schemas.user import UserCreate
+from models import User
+from database import commit_and_handle_exception, refresh_and_handle_exception
+
+
+class UserService:
+    def insert_user_db(self, user_create: UserCreate, session: Session):
+        new_user = User(
+            name=user_create.name.strip(),
+            surname=user_create.surname.strip(),
+            email=user_create.email.strip(),
+            hashed_password=user_create.password.strip(),
+        )
+        session.add(new_user)
+        commit_and_handle_exception(session)
+        refresh_and_handle_exception(session, new_user)
+        return new_user
+
+```
+
+## User Router
+
+The user router handles HTTP requests related to user operations. The create_user endpoint specifically deals with registering new users. It validates incoming data against the UserCreate schema, leverages the UserService to insert the new user record, and returns a sanitized UserRead object.
+
+```python
+from typing import Annotated
+from fastapi import APIRouter, Depends
+from services.user_service import UserService
+from schemas.user import UserCreate, UserRead
+from database import get_session
+from sqlmodel import Session
+
+user_router = APIRouter(prefix="/user", tags=["User"])
+
+db_dependency = Annotated[Session, Depends(get_session)]
+
+user_service = UserService()
+
+
+@user_router.post("/", response_model=UserRead)
+def create_user(user_create: UserCreate, session: db_dependency):
+    """
+    ## Create a new user (**register**)
+
+    This endpoint will create a new user in the database.
+
+    - **user_create**: User object
+
+    Returns:
+    - `user`: User object
+    """
+    user = user_service.insert_user_db(user_create, session)
+    return UserRead.from_user(user)
+
+```
+
+## Include User Router
+
+Finally you need to include new router in `main.py`
+
+```python
+from fastapi import FastAPI
+import os
+from database_init import initialize_database
+from routers.project import project_router  # Import our new projet_router
+from routers.user import user_router  # Import our new user_router
+from fastapi.middleware.cors import CORSMiddleware
+
+ALLOWED_ORIGIN: list = os.getenv("CORS_ALLOWED_ORIGIN", "http://localhost:8000").replace(" ", "").split(",")
+ALLOWED_METHODS: list = os.getenv("CORS_ALLOWED_METHODS", "GET, POST, PUT, DELETE, PATCH").replace(" ", "").split(",")
+ALLOWED_HEADERS: list = os.getenv("CORS_ALLOWED_HEADERS", "*").replace(" ", "").split(",")
+ALLOW_CREDENTIALS: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "TRUE") == "TRUE"
+MAX_AGE: int = int(os.getenv("CORS_MAX_AGE", 600))
+
+
+app = FastAPI()
+app.include_router(project_router)
+app.include_router(user_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGIN,
+    allow_credentials=ALLOW_CREDENTIALS,
+    allow_methods=ALLOWED_METHODS,
+    allow_headers=ALLOWED_HEADERS,
+    max_age=MAX_AGE,
+)
+
+
+@app.get("/")
+def root():
+    return {"message": "Hello World"}
+
+
+initialize_database()
+```
+
+This structured approach ensures that the user registration process is secure, efficient, and maintainable, laying a solid foundation for further development of the application's authentication and authorization features.
+
+# 12. Login User Endpoint
 
 > [!TIP]
 > Available checkpoint: [Login_user](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/12-login_user.zip)
 
-# 13.
+Creating a secure login system is essential for any web application that handles user accounts. This tutorial covers the process of implementing a login endpoint in FastAPI, which authenticates users by verifying their credentials and generating a JWT (JSON Web Token) for access control.
+
+## Access Token
+
+The AccessToken class is responsible for creating and verifying JWTs. It uses the jose library to encode user-specific information into tokens that are signed with a secret key. These tokens include an expiry time to ensure that they are valid for a limited period.
+
+```python
+from datetime import datetime, timedelta
+ import os
+ from typing import Annotated
+ from fastapi import Depends, HTTPException
+ from fastapi.security import OAuth2PasswordBearer
+ from jose import jwt
+ from models import User
+
+ SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "ULTRA_SECRET_KEY")
+ ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+ ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 10))
+
+ oaouth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token")
+
+
+ class AccessToken:
+     @staticmethod
+     def create_token(user: User):
+         token_payload = {
+             "sub": user.email,
+             "id": user.id,
+             "iat": datetime.utcnow(),
+             "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+             "typ": "Access",
+         }
+         return jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
+
+     @staticmethod
+     def verify_token(token: Annotated[str, Depends(oaouth2_bearer)]):
+         try:
+             payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+             email: str = payload.get("sub")
+             user_id: int = payload.get("id")
+             exp: int = payload.get("exp")
+             typ: str = payload.get("typ")
+
+             if exp is not None and exp < datetime.utcnow().timestamp():
+                 raise HTTPException(status_code=401, detail="Access token expired")
+
+             if email is None or user_id is None or typ != "Access":
+                 raise HTTPException(status_code=401, detail="Invalid access token")
+             return User(email=email, id=user_id)
+         except jwt.JWTError:
+             raise HTTPException(status_code=401, detail="Invalid token")
+```
+
+## Token Schema
+
+The `TokenRead` schema defines the structure of the response that the login endpoint will return. This response includes the access token, its expiry time, and the token type (Bearer).
+
+```python
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+ from typing import Optional
+ from tokens.access_token import AccessToken
+ import os
+
+ ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 10))
+
+
+ class TokenBase(BaseModel):
+     model_config = ConfigDict(extra="forbid")
+
+
+ class TokenRead(TokenBase):
+     access_token: str
+     expires_in: int
+     token_type: str
+
+     @classmethod
+     def from_auth(cls, access_token: AccessToken):
+         return cls(
+             access_token=access_token,
+             expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+             token_type="Bearer",
+         )
+```
+
+## User Schema
+
+The UserLogin schema is used to validate the login request data. It requires the user's email and password.
+
+```python
+from pydantic import BaseModel, ConfigDict, Field, field_validator, EmailStr
+from pydantic_core.core_schema import FieldValidationInfo
+import re
+
+
+class UserBase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+
+class UserCreate(UserBase):
+    name: str = Field(..., examples=["Your name"], min_length=3, max_length=100)
+    surname: str = Field(..., examples=["Your surname"], min_length=3, max_length=100)
+    email: EmailStr = Field(..., examples=["email@example.com"], min_length=3, max_length=100)
+    password: str = Field(..., examples=["MyPassword123"], min_length=3, max_length=100)
+    password_confirmation: str = Field(..., examples=["MyPassword123"], min_length=3, max_length=100)
+
+    @field_validator("name", mode="before")
+    def validate_name(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Name must be between 3 and 100 characters long")
+        return value
+
+    @field_validator("surname", mode="before")
+    def validate_surname(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Surname must be between 3 and 100 characters long")
+        return value
+
+    @field_validator("email", mode="before")
+    def validate_email(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Invalid email length")
+        if re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", value) is None:
+            raise ValueError("Invalid email address")
+        return value
+
+    @field_validator("password", mode="before")
+    def validate_password(cls, value, info: FieldValidationInfo):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Password must be between 3 and 100 characters long")
+        return value
+
+    @field_validator("password_confirmation", mode="before")
+    def validate_password_confirmation(cls, value, info: FieldValidationInfo):
+        password = info.data.get("password")
+        if value != password:
+            raise ValueError("Passwords do not match")
+        return value
+
+
+class UserLogin(UserBase):
+    email: str
+    password: str
+```
+
+## AuthService
+
+The AuthService class contains methods to verify a user's email and password against the stored values in the database. It leverages the bcrypt library to safely compare hashed passwords.
+
+```python
+from fastapi import HTTPException
+ from sqlmodel import Session, select
+ from schemas.user import UserLogin
+ from models import User
+ from fastapi.security import OAuth2PasswordBearer
+ from passlib.context import CryptContext
+
+
+ bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+
+ class AuthService:
+     def verify_user_and_password(self, user_data: OAuth2PasswordBearer, session: Session):
+         user_data = UserLogin(email=user_data.username, password=user_data.password)
+         user = self._verify_user(user_data, session)
+         self._verify_password(user_data.password, user.hashed_password)
+         return user
+
+     def _verify_user(self, user_login: User, session: Session):
+         query = select(User).where(User.email == user_login.email.strip())
+         user = session.exec(query).first()
+         if not user:
+             raise HTTPException(status_code=401, detail="Invalid user")
+         return user
+
+     def _verify_password(self, plain_password: str, hashed_password: str):
+         if not bcrypt_context.verify(plain_password.strip(), hashed_password):
+             raise HTTPException(status_code=401, detail="Invalid password")
+```
+
+## Hash Register Password
+
+When registering a new user, their password is hashed using bcrypt before being stored in the database. This ensures that plain-text passwords are never stored or transmitted.
+
+```python
+from sqlmodel import Session
+from schemas.user import UserCreate
+from models import User
+from database import commit_and_handle_exception, refresh_and_handle_exception
+from services.auth_service import bcrypt_context
+
+
+class UserService:
+    def insert_user_db(self, user_create: UserCreate, session: Session):
+        new_user = User(
+            name=user_create.name.strip(),
+            surname=user_create.surname.strip(),
+            email=user_create.email.strip(),
+            hashed_password=bcrypt_context.hash(user_create.password.strip()),
+        )
+        session.add(new_user)
+        commit_and_handle_exception(session)
+        refresh_and_handle_exception(session, new_user)
+        return new_user
+```
+
+## Include Auth Router
+
+Finally, the `auth_router` is included in the FastAPI application to handle authentication requests. This router defines the `/auth/token` endpoint, which processes login requests, authenticates users, and returns JWTs if the credentials are valid.
+
+```python
+from fastapi import FastAPI
+import os
+from database_init import initialize_database
+from routers.project import project_router  # Import our new projet_router
+from routers.user import user_router  # Import our new user_router
+from routers.auth import auth_router  # Import our new auth_router
+from fastapi.middleware.cors import CORSMiddleware
+
+ALLOWED_ORIGIN: list = os.getenv("CORS_ALLOWED_ORIGIN", "http://localhost:8000").replace(" ", "").split(",")
+ALLOWED_METHODS: list = os.getenv("CORS_ALLOWED_METHODS", "GET, POST, PUT, DELETE, PATCH").replace(" ", "").split(",")
+ALLOWED_HEADERS: list = os.getenv("CORS_ALLOWED_HEADERS", "*").replace(" ", "").split(",")
+ALLOW_CREDENTIALS: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "TRUE") == "TRUE"
+MAX_AGE: int = int(os.getenv("CORS_MAX_AGE", 600))
+
+
+app = FastAPI()
+app.include_router(project_router)
+app.include_router(user_router)
+app.include_router(auth_router)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGIN,
+    allow_credentials=ALLOW_CREDENTIALS,
+    allow_methods=ALLOWED_METHODS,
+    allow_headers=ALLOWED_HEADERS,
+    max_age=MAX_AGE,
+)
+
+
+@app.get("/")
+def root():
+    return {"message": "Hello World"}
+
+
+initialize_database()
+```
+
+By integrating these components, you establish a secure authentication system that protects user credentials and regulates access to your application's resources through JWTs. This system ensures that only authenticated users can perform actions requiring authorization, enhancing your application's security.
+
+# 13. Project Authentication
 
 > [!TIP]
 > Available checkpoint: [Project_auth](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/13-project_auth.zip)
 
-# 14.
+Integrating authentication into your project management system ensures that users can only access projects they are authorized to view, create, modify, or delete. This section outlines how to implement project-specific authentication and authorization using FastAPI, Pydantic, and SQLAlchemy, ensuring secure access control to project resources based on user sessions.
+
+## Project Router
+
+The project router defines the endpoints for creating, retrieving, updating, and deleting project resources. Authentication is enforced by extracting the user's identity from the access token, which is then used to validate access permissions for the requested operations.
+
+```python
+from typing import Annotated
+from fastapi import APIRouter, Depends
+from tokens.access_token import AccessToken
+from services.project_service import ProjectService
+from schemas.project import ProjectRead, ProjectCreate, ProjectUpdatePartial
+from database import get_session
+from sqlmodel import Session
+
+
+project_router = APIRouter(prefix="/project", tags=["Project"])
+
+db_dependency = Annotated[Session, Depends(get_session)]
+user_dependency = Annotated[dict, Depends(AccessToken.verify_token)]
+
+project_service = ProjectService()
+
+
+@project_router.post("/", response_model=ProjectRead)
+def create_project(project_create: ProjectCreate, user: user_dependency, session: db_dependency):
+    """
+    ## Create a new project
+
+    This endpoint will create a new project in the database.
+
+    - **project_create**: Project object
+
+    Returns:
+    - `project`: Project object
+    """
+    new_project = project_service.insert_project_db(project_create, user.id, session)
+    return ProjectRead.from_project(new_project)
+
+
+@project_router.get("/{project_id}", response_model=ProjectRead)
+def read_project(project_id: int, user: user_dependency, session: db_dependency):
+    """
+    ## Retrieve a project from the database
+
+    This endpoint will return a project based on the ID passed on provided project_id.
+
+    - **project_id**: ID of the project to retrieve
+
+    Returns:
+    - `project`: Project object
+    """
+    project = project_service.select_project_by_id_db(project_id, user.id, session)
+    return ProjectRead.from_project(project)
+
+
+@project_router.get("/", response_model=list[ProjectRead])
+def read_all_projects(user: user_dependency, session: db_dependency):
+    """
+    ## Retrieve all projects from the database
+
+    This endpoint will return all projects in the database.
+
+    Returns:
+    - `projects`: List of project objects
+    """
+    projects = project_service.select_all_projects_db(user.id, session)
+    return [ProjectRead.from_project(project) for project in projects]
+
+
+@project_router.patch("/{project_id}", response_model=ProjectRead)
+def update_project_partial(
+    project_id: int, project_update: ProjectUpdatePartial, user: user_dependency, session: db_dependency
+):
+    """
+    ## Update a project (partial)
+
+    This endpoint will update a project in the database.
+
+    - **project_id**: ID of the project to update
+    - **project_update**: Project object
+
+    Returns:
+    - `project`: Project object
+    """
+    updated_project = project_service.update_partial_project_by_id_db(project_id, project_update, user.id, session)
+    return ProjectRead.from_project(updated_project)
+
+
+@project_router.delete("/{project_id}")
+def delete_project(project_id: int, user: user_dependency, session: db_dependency):
+    """
+    ## Delete a project
+
+    This endpoint will delete a project from the database.
+
+    - **project_id**: ID of the project to delete
+
+    Returns:
+    - `message`: Message indicating that the project was deleted
+    """
+    project_service.delete_project_by_id_db(project_id, user.id, session)
+    return {"message": "Project deleted"}
+```
+
+Each endpoint uses the user_dependency, which is a FastAPI Depends dependency that invokes AccessToken.verify_token. This dependency ensures that only authenticated users can interact with the project endpoints, and it also passes the user's identity to the service layer for authorization checks.
+
+## Project Service
+
+The project service layer contains the business logic for managing project resources. It interacts with the database to perform CRUD operations and implements authorization logic to ensure that users can only access or modify their projects.
+
+```python
+from fastapi import HTTPException
+from helpers import update_object_attributes
+from models import Project
+from sqlmodel import Session, select
+from schemas.project import ProjectCreate, ProjectUpdatePartial
+from database import commit_and_handle_exception, refresh_and_handle_exception
+
+
+class ProjectService:
+
+    def insert_project_db(self, project_create: ProjectCreate, user_id: int, session: Session):
+        new_project = Project(
+            name=project_create.name.strip(), description=project_create.description.strip(), user_id=user_id
+        )
+        session.add(new_project)
+        commit_and_handle_exception(session)
+        refresh_and_handle_exception(session, new_project)
+        return new_project
+
+    def select_project_by_id_db(self, project_id: int, user_id: int, session: Session):
+        project = self._get_project_by_id(project_id, session)
+        self._check_project_access(project, user_id)
+        return project
+
+    def select_all_projects_db(self, user_id: int, session: Session):
+        statement = select(Project).where(Project.user_id == user_id)
+        projects = session.exec(statement).all()
+        return projects
+
+    def update_partial_project_by_id_db(
+        self, project_id: int, project_update: ProjectUpdatePartial, user_id: int, session: Session
+    ):
+        project = self._get_project_by_id(project_id, session)
+        self._check_project_access(project, user_id)
+        update_object_attributes(project, list(Project.model_json_schema()["properties"].keys()), project_update)
+        commit_and_handle_exception(session)
+        refresh_and_handle_exception(session, project)
+        return project
+
+    def delete_project_by_id_db(self, project_id: int, user_id: int, session: Session):
+        project = self._get_project_by_id(project_id, session)
+        self._check_project_access(project, user_id)
+        session.delete(project)
+        commit_and_handle_exception(session)
+
+    def _get_project_by_id(self, project_id: int, session: Session):
+        project = session.get(Project, project_id)
+        if project is None:
+            raise HTTPException(status_code=404, detail="Project not found")
+        return project
+
+    def _check_project_access(self, project: Project, user_id: int):
+        if project.user_id != user_id:
+            raise HTTPException(status_code=403, detail="Forbidden")
+```
+
+Authorization checks are performed by comparing the user_id associated with a project against the user_id extracted from the access token. This ensures that users can only manipulate projects they own, providing a secure and user-specific experience.
+
+# 14. Register and Login Forms
 
 > [!TIP]
 > Available checkpoint: [Register_and_login_form](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/14-register_and_login_form.zip)
+
+This guide will demonstrate how to implement registration and login forms in React and integrate them into the React Router for navigation. Implementing these forms is crucial for managing user authentication and ensuring that users can securely access and interact with your application's features.
+
+## Register Form
+
+The registration form is essential for capturing new user details and storing them in your system. It typically includes fields for the user's name, surname, email, password, and password confirmation. Below is an example implementation in TypeScript using React's useState hook for form state management, and React Bootstrap for styling.
+
+```typescript
+import { useState, ChangeEvent, FormEvent } from "react";
+ import { Button, Form } from "react-bootstrap";
+ import { useNavigate } from "react-router-dom";
+
+ interface FormData {
+   name: string;
+   surname: string;
+   email: string;
+   password: string;
+   password_confirmation: string;
+ }
+
+ function RegisterForm() {
+   const [formData, setFormData] = useState<FormData>({
+     name: "",
+     surname: "",
+     email: "",
+     password: "",
+     password_confirmation: "",
+   });
+
+   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+   const [errorMessage, setErrorMessage] = useState<string>("");
+   const navigate = useNavigate();
+
+   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+     const { name, value } = e.target;
+
+     setFormData({
+       ...formData,
+       [name]: value,
+     });
+   };
+
+   const validateForm = () => {
+     let isValid = true;
+     const newErrors: { [key: string]: string } = {};
+
+     // Validate name
+     if (!formData.name) {
+       newErrors.name = "Name is required";
+     } else if (formData.name.length < 3 || formData.name.length > 100) {
+       newErrors.name = "Name must be between 3 and 100 characters";
+     }
+
+     // Validate surname
+     if (!formData.surname) {
+       newErrors.surname = "Surname is required";
+     } else if (formData.surname.length < 3 || formData.surname.length > 100) {
+       newErrors.surname = "Surname must be between 3 and 100 characters";
+     }
+
+     // Validate email
+     if (!formData.email) {
+       newErrors.email = "Email is required";
+     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+       newErrors.email = "Invalid email address";
+     } else if (formData.email.length < 3 || formData.email.length > 100) {
+       newErrors.email = "Email must be between 3 and 100 characters";
+     }
+
+     // Validate password
+     if (!formData.password) {
+       newErrors.password = "Password is required";
+     } else if (formData.password.length < 3 || formData.password.length > 100) {
+       newErrors.password = "Password must be between 3 and 100 characters";
+     }
+
+     // Validate password confirmation
+     if (!formData.password_confirmation) {
+       newErrors.password_confirmation = "Password confirmation is required";
+     } else if (formData.password !== formData.password_confirmation) {
+       newErrors.password_confirmation =
+         "Password and password confirmation must match";
+     }
+
+     setErrors(newErrors);
+     isValid = Object.keys(newErrors).length === 0;
+     return isValid;
+   };
+
+   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+     e.preventDefault();
+
+     if (validateForm()) {
+       fetch("http://localhost:8000/user", {
+         method: "POST",
+         headers: {
+           "Content-Type": "application/json",
+         },
+         body: JSON.stringify(formData),
+       })
+         .then((response) => {
+           if (response.ok) {
+             navigate("/login", { replace: true });
+           } else {
+             setErrorMessage("Registration failed");
+           }
+         })
+         .catch((error) => {
+           console.error("Error:", error);
+           setErrorMessage("Failed to register");
+         });
+     }
+   };
+
+   return (
+     <>
+       <h1>Register</h1>
+       {errorMessage && <div className="text-danger">{errorMessage}</div>}
+       <Form onSubmit={handleSubmit}>
+         <Form.Group>
+           <Form.Label>Name</Form.Label>
+           <Form.Control
+             type="text"
+             name="name"
+             value={formData.name}
+             onChange={handleInputChange}
+           />
+           {errors.name && <div className="text-danger">{errors.name}</div>}
+         </Form.Group>
+         <Form.Group>
+           <Form.Label>Surname</Form.Label>
+           <Form.Control
+             type="text"
+             name="surname"
+             value={formData.surname}
+             onChange={handleInputChange}
+           />
+           {errors.surname && (
+             <div className="text-danger">{errors.surname}</div>
+           )}
+         </Form.Group>
+         <Form.Group>
+           <Form.Label>Email</Form.Label>
+           <Form.Control
+             type="email"
+             name="email"
+             value={formData.email}
+             onChange={handleInputChange}
+           />
+           {errors.email && <div className="text-danger">{errors.email}</div>}
+         </Form.Group>
+         <Form.Group>
+           <Form.Label>Password</Form.Label>
+           <Form.Control
+             type="password"
+             name="password"
+             value={formData.password}
+             onChange={handleInputChange}
+           />
+           {errors.password && (
+             <div className="text-danger">{errors.password}</div>
+           )}
+         </Form.Group>
+         <Form.Group>
+           <Form.Label>Confirm Password</Form.Label>
+           <Form.Control
+             type="password"
+             name="password_confirmation"
+             value={formData.password_confirmation}
+             onChange={handleInputChange}
+           />
+           {errors.password_confirmation && (
+             <div className="text-danger">{errors.password_confirmation}</div>
+           )}
+         </Form.Group>
+         <Button variant="primary" type="submit" className="mt-3">
+           Register
+         </Button>
+       </Form>
+     </>
+   );
+ }
+
+ export default RegisterForm;
+```
+
+This form includes input change handling, form validation to ensure data integrity before submission, and navigation to the login page upon successful registration.
+
+## Login Form
+
+The login form allows existing users to authenticate by providing their email and password. Similar to the registration form, it employs useState for form state management and React Bootstrap for the user interface.
+
+```typescript
+import { useState, ChangeEvent, FormEvent, useContext } from "react";
+ import { useNavigate } from "react-router-dom";
+ import {
+   Button,
+   Form,
+   FormControl,
+   FormGroup,
+   FormText,
+ } from "react-bootstrap";
+
+ interface FormData {
+   email: string;
+   password: string;
+ }
+
+ function LoginForm() {
+   const [formData, setFormData] = useState<FormData>({
+     email: "",
+     password: "",
+   });
+
+   const navigate = useNavigate();
+
+   const [errors, setErrors] = useState<{ [key: string]: string }>({});
+   const [errorMessage, setErrorMessage] = useState<string>("");
+
+   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+     const { name, value } = e.target;
+
+     setFormData({
+       ...formData,
+       [name]: value,
+     });
+   };
+
+   const validateForm = () => {
+     let isValid = true;
+     const newErrors: { [key: string]: string } = {};
+
+     // Validate email
+     if (!formData.email) {
+       newErrors.email = "Email is required";
+     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+       newErrors.email = "Invalid email address";
+     } else if (formData.email.length < 3 || formData.email.length > 100) {
+       newErrors.email = "Email must be between 3 and 100 characters";
+     }
+
+     // Validate password
+     if (!formData.password) {
+       newErrors.password = "Password is required";
+     } else if (formData.password.length < 3 || formData.password.length > 100) {
+       newErrors.password = "Password must be between 3 and 100 characters";
+     }
+
+     setErrors(newErrors);
+     isValid = Object.keys(newErrors).length === 0;
+     return isValid;
+   };
+
+   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+     e.preventDefault();
+
+     if (validateForm()) {
+       fetch("http://localhost:8000/auth/token", {
+         method: "POST",
+         headers: {
+           "Content-Type": "application/x-www-form-urlencoded",
+         },
+         body: new URLSearchParams({
+           username: formData.email,
+           password: formData.password,
+         }),
+       })
+         .then((response) => {
+           if (response.ok) {
+             return response.json();
+           } else {
+             setErrorMessage("Login failed");
+           }
+         })
+         .then((data) => {
+           console.log(data.access_token);
+           navigate("/projects");
+         })
+         .catch((error) => {
+           console.error("Error:", error);
+           setErrorMessage("An error occurred");
+         });
+     }
+   };
+
+   return (
+     <>
+       <h1>Login</h1>
+       {errorMessage && <div className="error">{errorMessage}</div>}
+       <Form onSubmit={handleSubmit}>
+         <FormGroup>
+           <Form.Label>Email</Form.Label>
+           <FormControl
+             type="email"
+             name="email"
+             value={formData.email}
+             onChange={handleInputChange}
+           ></FormControl>
+           {errors.email && (
+             <FormText className="text-danger"> * {errors.email}</FormText>
+           )}
+         </FormGroup>
+         <FormGroup>
+           <Form.Label>Password</Form.Label>
+           <FormControl
+             type="password"
+             name="password"
+             value={formData.password}
+             onChange={handleInputChange}
+           ></FormControl>
+           {errors.password && (
+             <FormText className="text-danger"> * {errors.password}</FormText>
+           )}
+         </FormGroup>
+         <Button variant="primary" type="submit" className="mt-3">
+           Login
+         </Button>
+       </Form>
+     </>
+   );
+ }
+
+ export default LoginForm;
+```
+
+The login form includes functionality to validate user input and navigate to the projects page upon successful authentication.
+
+## Creating Login and Register Routes
+
+To integrate these forms into your application, you'll need to modify your React Router setup to include routes for the login and registration pages. This ensures that users can navigate to these forms within your application.
+
+```typescript
+import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
+ import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+ import Header from "./components/Header/Header.tsx";
+ import Login from "./components/Login/Login.tsx";
+ import Register from "./components/Register/Register.tsx";
+
+ function App() {
+   return (
+     <BrowserRouter>
+       <Header />
+       <Container className="mt-5">
+         <Routes>
+           <Route path="login" element={<Login />} />
+           <Route path="register" element={<Register />} />
+           <Route path="/projects/">
+             <Route path="create" element={<ProjectCreate />} />
+             <Route path="" element={<ProjectList />} />
+             <Route path=":project_id" element={<ProjectView />} />
+             <Route path=":project_id/edit" element={<ProjectEdit />} />
+           </Route>
+         </Routes>
+       </Container>
+     </BrowserRouter>
+   );
+ }
+
+ export default App;
+```
+
+By integrating these routes, you enable your application to handle user authentication through a structured and user-friendly interface. This setup facilitates secure access to application features and enhances the overall user experience.
 
 # 15. Creating Token Context with React Context API
 
@@ -1001,13 +1998,35 @@ export default TokenContextProvider;
 To ensure that the `TokenContextProvider` is accessible throughout your application, wrap your application with the TokenContextProvider in your main App component. In this case we will wrap each Routes in React Router.
 
 ```typescript
+import { Route, BrowserRouter, Routes } from "react-router-dom";
+import { Container } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";
+import ProjectView from "./components/Projects/ProjectView/ProjectView.tsx";
+import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
+import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+import Header from "./components/Header/Header.tsx";
+import Login from "./components/Login/Login.tsx";
+import Register from "./components/Register/Register.tsx";
+import TokenContextProvider from "./context/TokenContextProvider.tsx";
+
 function App() {
   return (
     <BrowserRouter>
       <TokenContextProvider>
-        <Routes>
-            // Define your routes here
-        </Routes>
+        <Header />
+        <Container className="mt-5">
+          <Routes>
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route path="/projects/">
+              <Route path="create" element={<ProjectCreate />} />
+              <Route path="" element={<ProjectList />} />
+              <Route path=":project_id" element={<ProjectView />} />
+              <Route path=":project_id/edit" element={<ProjectEdit />} />
+            </Route>
+          </Routes>
+        </Container>
       </TokenContextProvider>
     </BrowserRouter>
   );
@@ -1022,17 +2041,67 @@ export default App;
 To utilize the ContextAPI in a login component, modify the login form handling to include the useContext hook to access the `login` function from `TokenContext`. This way, once the user successfully logs in, you can update the context with the new token.
 
 ```typescript
-import { useContext } from "react"; 
+import { useState, ChangeEvent, FormEvent, useContext } from "react";
+import { useNavigate } from "react-router-dom";
 import TokenContext from "../../context/TokenContext";
-// Other necessary imports
+import {
+  Button,
+  Form,
+  FormControl,
+  FormGroup,
+  FormText,
+} from "react-bootstrap";
 
-//Form Interface
+interface FormData {
+  email: string;
+  password: string;
+}
 
 function LoginForm() {
-  const { login } = useContext(TokenContext);  //Accessing login function from TokenContext
+  const [formData, setFormData] = useState<FormData>({
+    email: "",
+    password: "",
+  });
 
+  const navigate = useNavigate();
+  const { login } = useContext(TokenContext)!;
 
-  //Other code...
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors: { [key: string]: string } = {};
+
+    // Validate email
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Invalid email address";
+    } else if (formData.email.length < 3 || formData.email.length > 100) {
+      newErrors.email = "Email must be between 3 and 100 characters";
+    }
+
+    // Validate password
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 3 || formData.password.length > 100) {
+      newErrors.password = "Password must be between 3 and 100 characters";
+    }
+
+    setErrors(newErrors);
+    isValid = Object.keys(newErrors).length === 0;
+    return isValid;
+  };
 
   const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -1056,7 +2125,7 @@ function LoginForm() {
           }
         })
         .then((data) => {
-          login(data.access_token); //Update the context with the new token
+          login(data.access_token);
           navigate("/projects");
         })
         .catch((error) => {
@@ -1066,10 +2135,104 @@ function LoginForm() {
     }
   };
 
-  // Return statement and other component logic...
+  return (
+    <>
+      <h1>Login</h1>
+      {errorMessage && <div className="error">{errorMessage}</div>}
+      <Form onSubmit={handleSubmit}>
+        <FormGroup>
+          <Form.Label>Email</Form.Label>
+          <FormControl
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+          ></FormControl>
+          {errors.email && (
+            <FormText className="text-danger"> * {errors.email}</FormText>
+          )}
+        </FormGroup>
+        <FormGroup>
+          <Form.Label>Password</Form.Label>
+          <FormControl
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
+          ></FormControl>
+          {errors.password && (
+            <FormText className="text-danger"> * {errors.password}</FormText>
+          )}
+        </FormGroup>
+        <Button variant="primary" type="submit" className="mt-3">
+          Login
+        </Button>
+      </Form>
+    </>
+  );
 }
 
 export default LoginForm;
+```
+
+## React Header
+
+The React Header component creates a navigation bar for your application using React Bootstrap. It dynamically adjusts its links based on the user's authentication status, which it determines through a context called TokenContext. This context provides a method isTokenValid to check if the user's token is still valid (indicating that they are logged in) and a logout method to clear the user's session.
+
+```typescript
+import { useContext, useEffect, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import TokenContext from "../../context/TokenContext";
+import { Container, Nav, Navbar } from "react-bootstrap";
+
+function Header() {
+  const { isTokenValid, logout } = useContext(TokenContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isTokenValid()) {
+      navigate("/login", { replace: true });
+    }
+  }, [isTokenValid]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
+
+  return (
+    <>
+      <Navbar bg="light">
+        <Container>
+          <Navbar.Brand>GUI APP</Navbar.Brand>
+          <Nav className="me-auto">
+            {isTokenValid() && (
+              <Nav.Link as={NavLink} to="/projects">
+                Projects
+              </Nav.Link>
+            )}
+          </Nav>
+          <Nav className="me-end">
+            {!isTokenValid() ? (
+              <>
+                <Nav.Link as={NavLink} to="/login" className="Button">
+                  Login
+                </Nav.Link>
+                <Nav.Link as={NavLink} to="/register">
+                  Register
+                </Nav.Link>
+              </>
+            ) : (
+              <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
+            )}
+          </Nav>
+        </Container>
+      </Navbar>
+    </>
+  );
+}
+
+export default Header;
 ```
 
 By adopting this approach, you simplify token management across your React application, enhancing security and user experience by ensuring that sensitive information like authentication tokens are handled efficiently and securely.
@@ -1153,28 +2316,73 @@ This component checks the validity of the token and, if found invalid, redirects
 To utilize the Authenticated component effectively, modifications to the React Router setup are required. This ensures that specific routes are protected and accessible only to authenticated users:
 
 ```typescript
+import { Route, BrowserRouter, Routes } from "react-router-dom";
+import { Container } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";
+import ProjectView from "./components/Projects/ProjectView/ProjectView.tsx";
+import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
+import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+import Header from "./components/Header/Header.tsx";
+import Login from "./components/Login/Login.tsx";
+import Register from "./components/Register/Register.tsx";
+import TokenContextProvider from "./context/TokenContextProvider.tsx";
+import Authenticated from "./components/Authenticated/Authenticated.tsx";
+
 function App() {
   return (
     <BrowserRouter>
       <TokenContextProvider>
+        <Header />
+        <Container className="mt-5">
           <Routes>
-            <Route path=":project_id" element={
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route path="/projects/">
+              <Route
+                path="create"
+                element={
+                  <Authenticated>
+                    <ProjectCreate />
+                  </Authenticated>
+                }
+              />
+              <Route
+                path=""
+                element={
+                  <Authenticated>
+                    <ProjectList />
+                  </Authenticated>
+                }
+              />
+              <Route
+                path=":project_id"
+                element={
                   <Authenticated>
                     <ProjectView />
                   </Authenticated>
-            } />
-        </Route>
-        </Routes>
+                }
+              />
+              <Route
+                path=":project_id/edit"
+                element={
+                  <Authenticated>
+                    <ProjectEdit />
+                  </Authenticated>
+                }
+              />
+            </Route>
+          </Routes>
+        </Container>
       </TokenContextProvider>
     </BrowserRouter>
   );
 }
 
 export default App;
-
 ```
 
-By wrapping the ProjectView component (or any other component) with the Authenticated component within the route definition, you ensure that access is granted only to users with a valid token. This mechanism enhances the security and integrity of the application by preventing unauthorized access to sensitive information or functionalities.
+By wrapping the each Project component (or any other component) with the Authenticated component within the route definition, you ensure that access is granted only to users with a valid token. This mechanism enhances the security and integrity of the application by preventing unauthorized access to sensitive information or functionalities.
 
 This approach to integrating token authentication into CRUD operations and creating authenticated routes in React applications serves as a foundation for developing secure, efficient, and user-friendly web applications.
 
