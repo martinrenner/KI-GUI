@@ -1202,27 +1202,27 @@ ProjectsList.tsx
 ```tsx
 // Other code 
 const delete_project = (project_id: number) => {
-    fetch(`http://localhost:8000/project/${project_id}`, {
-		method: "DELETE",
-        headers: {
-            "Content-Type": "application/json",
-        },
+  fetch(`http://localhost:8000/project/${project_id}`, {
+	  method: "DELETE",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+    .then((response) => {
+      if (response.ok) {
+        return response.json();
+      } else {
+        throw new Error("Failed to delete project");
+      }
     })
-        .then((response) => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            throw new Error("Failed to delete project");
-        }
-        })
-        .then(() => {
-	        setProjects(
-	            projects.filter((project) => project.id !== project_id)
-            );
-	    })
-        .catch((error) => {
-	        console.error("Error deleting project:", error);
-	    });
+    .then(() => {
+	    setProjects(
+        projects.filter((project) => project.id !== project_id)
+      );
+	  })
+    .catch((error) => {
+	    console.error("Error deleting project:", error);
+	  });
 };
 // Other code 
 ```
@@ -1234,32 +1234,32 @@ ProjectsList.tsx
 ```tsx
 // Other code 
 const finish_project = (project_id: number) => {
-    fetch(`http://localhost:8000/project/${project_id}`, {
-	    method: "PATCH",
-        headers: {
-	        "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ is_finished: true }),
+  fetch(`http://localhost:8000/project/${project_id}`, {
+	  method: "PATCH",
+    headers: {
+	    "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ is_finished: true }),
 	})
-        .then((response) => {
-	        if (response.ok) {
-		        return response.json();
-	        } else {
-		        throw new Error("Failed to finish project");
-	        }
+    .then((response) => {
+	    if (response.ok) {
+		    return response.json();
+	    } else {
+		    throw new Error("Failed to finish project");
+	    }
+	})
+    .then(() => {
+	    setProjects(
+        projects.map((project) =>
+		      project.id === project_id
+            ? { ...project, is_finished: true }
+            : project
+		      )
+        );
 	    })
-        .then(() => {
-	        setProjects(
-		        projects.map((project) =>
-		            project.id === project_id
-		                ? { ...project, is_finished: true }
-		                : project
-		        )
-            );
-	    })
-        .catch((error) => {
-	        console.error("Error finishing project:", error);
-        });
+    .catch((error) => {
+	    console.error("Error finishing project:", error);
+    });
 };
 // Other code 
 ```
