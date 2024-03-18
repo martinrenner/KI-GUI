@@ -936,6 +936,484 @@ class ProjectUpdatePartial(ProjectBase):
         return value
 ```
 
+# 7. Project List
+
+## React Files
+Important files you need to notice
+1. `index.html`: Entry point of application and contains the HTML structure. It includes a `<div>` element with an ID where React app will be mounted, along with the necessary scripts.
+2. `App.css`: Contains CSS styles specific to the `App` component or the main layout of  application.
+3. `App.tsx`: Main TypeScript file your `App` component. Designed to define the structure of application, including routing, layout, and the composition of other components.
+4. `main.tsx`: This file is likely an entry point for your React application or serves as the main script where you initialize your React app.
+5. `index.css`: Contains global CSS styles that apply to your entire application.
+
+Delete the contents of following files: `App.css` and `index.css`. Also delete contents of `App.tsx`.  
+
+> [!CAUTION]
+> Don't forget to save these files!
+
+## Add CORS Middleware
+First we need to add Cross-Origin Resource Sharing (CORS) middleware to `main.py`. CORS is a security feature implemented by web browsers that restricts resources (e.g., fonts, JavaScript, etc.) on a web page from being requested from another domain outside the domain from which the first resource was served. 
+
+Adding this middleware enables CORS support, which allows frontend to make requests to  FastAPI backend, even if they are served from different origins (running on different ports).
+
+main.py
+```python
+...
+from fastapi.middleware.cors import CORSMiddleware
+...
+
+
+...
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGIN,
+    allow_credentials=ALLOW_CREDENTIALS,
+    allow_methods=ALLOWED_METHODS,
+    allow_headers=ALLOWED_HEADERS,
+    max_age=MAX_AGE,
+)
+...
+```
+
+Parameters in function `add_middleware()`:
+- `CORSMiddleware`: Middleware class provided by FastAPI to handle CORS.
+- `allow_origins`: Specifies which origins are allowed to access the resources of the server. 
+- `allow_credentials`: Determines whether credentials (cookies, authorization headers) should be included in the CORS request.
+- `allow_methods`: Specifies which HTTP methods are allowed when accessing the resources. 
+- `allow_headers`: Specifies which HTTP headers are allowed when accessing the resources.
+- `max_age`: The maximum amount of time that the results of a preflight request can be cached.
+We have already defined constant variables with desired values so we will just use them.
+
+## Header
+Component Header will contain navigation bar of application. When a user clicks on "Projects", the application's router will render the component associated with the `/projects` route without reloading the page, thanks to the `NavLink` and routing setup provided by `react-router-dom`. `Container`, `Nav`, and `Navbar` components from the `react-bootstrap` package are pre-styled components.
+
+To create Header component: 
+1. Create a folder named 'components' in /frontend/src.
+2. Within the 'components' folder, create a subfolder titled 'Header'.
+3. Inside the 'Header' folder, create a file named 'Header.tsx'.
+
+<details>
+  <summary>Header.tsx Code</summary>
+  
+  ```tsx
+  import { NavLink } from "react-router-dom";
+  import { Container, Nav, Navbar } from "react-bootstrap";
+
+  function Header() {
+   return (
+      <>
+         <Navbar bg="light">
+            <Container>
+               <Navbar.Brand>GUI APP</Navbar.Brand>
+               <Nav className="me-auto">
+                  <Nav.Link as={NavLink} to="/projects">
+                     Projects
+                  </Nav.Link>
+               </Nav>
+            </Container>
+         </Navbar>
+      </>
+   );
+  }
+
+  export default Header;
+  ```
+</details>
+
+Then modify `App.tsx` component to use the `Header` component along with client-side routing provided by `BrowserRouter`. The `Header` will be displayed, and any navigation actions performed within `Header` will be handled by `BrowserRouter`, enabling seamless page transitions without reloading the browser.
+
+<details>
+  <summary>App.tsx Code</summary>
+
+  ```tsx
+  import { BrowserRouter } from "react-router-dom";
+  import Header from "./components/Header/Header";
+  import "bootstrap/dist/css/bootstrap.min.css";
+
+  function App() {
+    return (
+      <>
+        <BrowserRouter>
+          <Header />
+        </BrowserRouter>
+      </>
+    );
+  }
+
+  export default App;
+  ```
+</details>
+
+## Project Interface
+To create interface Project:
+1. Create a folder named 'interfaces' in /frontend/src.
+2. Within the 'interfaces' folder, create a file named 'Project.ts'.
+
+In TypeScript, an interface is a way to define the structure of an object. It describes the shape of the object, including the types of its properties.
+
+<details>
+  <summary>Project.ts Code</summary>
+
+  ```ts
+  export interface Project {
+    id: number;
+    name: string;
+    description: string;
+    is_finished: boolean;
+  }
+  ```
+</details>
+
+## ProjectList
+To create ProjectList component: 
+1. Within the 'components' folder, create a subfolder titled 'Projects'.
+2. Inside the 'Projects' folder, establish another subfolder named 'ProjectsList'.
+3. Finally, within the 'ProjectsList' folder, create a file named 'ProjectList.tsx'.
+
+`useEffect()` is a React hook that lets you perform side effects in function components. Side effects can be anything that affects something outside the scope of the function being executed, like fetching data from an API, directly manipulating the DOM, etc. 
+
+Inside the `useEffect()`, the `fetch()` function is called with the URL `http://localhost:8000/project/`. This is an asynchronous operation to make a network request to the server at that URL using the HTTP `GET` method and it includes headers specifying that the expected response content type is JSON.
+
+- `fetch()` call returns a promise that resolves with a `response` object.
+- `.then((response) => ...)` method checks if the `response.ok` property is true, indicating that the response from server was successful. If so, it calls `response.json()` to parse JSON response into native JavaScript objects. Otherwise it throws an error.
+- `.then((data) => ...)` method receives the parsed data and calls `setProjects(data)`.
+- `.catch((error) => ...)` method catches any errors that occur during the fetch operation or while processing the response.
+
+The `map` function iterates over each `project` in the `projects` array, creating a new `Card` component for each project.
+
+<details>
+  <summary>ProjectList.tsx</summary>
+
+  ```tsx
+  import { useEffect, useState } from "react";
+  import { Project } from "../../../interfaces/Project";
+  import { Button, Card, Col, Row } from "react-bootstrap";
+  import { Link } from "react-router-dom";
+
+  function ProjectList() {
+    const [projects, setProjects] = useState<Project[]>([]);
+
+    useEffect(() => {
+      fetch("http://localhost:8000/project/", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          }
+          throw new Error("Failed to fetch projects data");
+        })
+        .then((data) => {
+          setProjects(data);
+        })
+        .catch((error) => {
+          console.error("Error fetching projects data:", error.message);
+        });
+    }, []);
+
+    return (
+      <>
+        <Row>
+          <Col xs={10}>
+            <h1>Projects</h1>
+          </Col>
+          <Col xs={2}>
+            <Link to="/projects/create">
+              <Button variant="primary" className="float-end">
+                Create project
+              </Button>
+            </Link>
+          </Col>
+        </Row>
+
+        {projects.map((project) => (
+          <Card key={project.id} className="mb-3">
+            <Card.Body>
+              <Row>
+                <Col>
+                  <Card.Title>
+                    {project.name} - {project.is_finished ? " Finished" : " Not finished"}
+                  </Card.Title>
+                </Col>
+                <Col xs={2} className="d-flex justify-content-end gap-2">
+                  {!project.is_finished && (
+                    <Button variant="success">Finish</Button>
+                  )}
+                  <Link to={`/projects/${project.id}`}>
+                    <Button variant="primary">View</Button>
+                  </Link>
+                  <Link to={`/projects/${project.id}/edit`}>
+                    <Button variant="warning">Edit</Button>
+                  </Link>
+                  <Button variant="danger">Delete</Button>
+                </Col>
+              </Row>
+              <Card.Text>{project.description}</Card.Text>
+            </Card.Body>
+          </Card>
+        ))}
+      </>
+    );
+  }
+
+  export default ProjectList;
+  ```
+</details>
+
+
+<details>
+  <summary>App.tsx Code</summary>
+
+  ```tsx
+  import { BrowserRouter, Route, Routes } from "react-router-dom";
+  import Header from "./components/Header/Header";
+  import "bootstrap/dist/css/bootstrap.min.css";
+  import { Container } from "react-bootstrap";
+  import ProjectList from "./components/Projects/ProjectList/ProjectList";
+
+  function App() {
+    return (
+      <>
+        <BrowserRouter>
+          <Header />
+          <Container className="mt-5">
+            <Routes>
+              <Route path="/projects/">
+                <Route path="" element={<ProjectList />} />
+              </Route>
+            </Routes>
+          </Container>
+        </BrowserRouter>
+      </>
+    );
+  }
+
+  export default App;
+  ```
+</details>
+
+### Delete Project
+Now we will define function to delete project. In this case we are making a DELETE request. If deletion on server side was successful `.then()` block is executed to update the local state, without need to refresh page.  
+
+ProjectsList.tsx
+```tsx
+// Other code 
+const delete_project = (project_id: number) => {
+    fetch(`http://localhost:8000/project/${project_id}`, {
+		method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+        .then((response) => {
+        if (response.ok) {
+            return response.json();
+        } else {
+            throw new Error("Failed to delete project");
+        }
+        })
+        .then(() => {
+	        setProjects(
+	            projects.filter((project) => project.id !== project_id)
+            );
+	    })
+        .catch((error) => {
+	        console.error("Error deleting project:", error);
+	    });
+};
+// Other code 
+```
+
+### Finish Project
+Now we will define function to mark project as finished. In this case we are making a PATCH request. The `body` of the request indicates the specific update to be made to the project marking it as finished. The `.then()` block is used to update projects local state. 
+
+ProjectsList.tsx
+```tsx
+// Other code 
+const finish_project = (project_id: number) => {
+    fetch(`http://localhost:8000/project/${project_id}`, {
+	    method: "PATCH",
+        headers: {
+	        "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ is_finished: true }),
+	})
+        .then((response) => {
+	        if (response.ok) {
+		        return response.json();
+	        } else {
+		        throw new Error("Failed to finish project");
+	        }
+	    })
+        .then(() => {
+	        setProjects(
+		        projects.map((project) =>
+		            project.id === project_id
+		                ? { ...project, is_finished: true }
+		                : project
+		        )
+            );
+	    })
+        .catch((error) => {
+	        console.error("Error finishing project:", error);
+        });
+};
+// Other code 
+```
+
+Finally add `onClick={() => delete_project(project.id)}` to the button with Delete text and `onClick={() => finish_project(project.id)}` to the button with Finish text, so that those functions are triggered on click.
+
+<details>
+  <summary>ProjectList.tsx Code</summary>
+  
+  ```tsx
+  import { useEffect, useState } from "react";
+  import { Project } from "../../../interfaces/Project";
+  import { Button, Card, Col, Row } from "react-bootstrap";
+  import { Link } from "react-router-dom";
+
+  function ProjectList() {
+    const [projects, setProjects] = useState<Project[]>([]);
+
+    useEffect(() => {
+        fetch("http://localhost:8000/project/", {
+          method: "GET",
+          headers: {
+              "Content-Type": "application/json",
+          },
+        })
+          .then((response) => {
+              if (response.ok) {
+                return response.json();
+              }
+              throw new Error("Failed to fetch projects data");
+          })
+          .then((data) => {
+              setProjects(data);
+          })
+          .catch((error) => {
+              console.error("Error fetching projects data:", error.message);
+          });
+    }, []);
+
+    const delete_project = (project_id: number) => {
+        fetch(`http://localhost:8000/project/${project_id}`, {
+          method: "DELETE",
+          headers: {
+              "Content-Type": "application/json",
+          },
+        })
+          .then((response) => {
+              if (response.ok) {
+                return response.json();
+              } else {
+                throw new Error("Failed to delete project");
+              }
+          })
+          .then(() => {
+              setProjects(
+                projects.filter((project) => project.id !== project_id)
+              );
+          })
+          .catch((error) => {
+              console.error("Error deleting project:", error);
+          });
+    };
+
+    const finish_project = (project_id: number) => {
+        fetch(`http://localhost:8000/project/${project_id}`, {
+          method: "PATCH",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ is_finished: true }),
+        })
+          .then((response) => {
+              if (response.ok) {
+                return response.json();
+              } else {
+                throw new Error("Failed to finish project");
+              }
+          })
+          .then(() => {
+              setProjects(
+                projects.map((project) =>
+                    project.id === project_id
+                      ? { ...project, is_finished: true }
+                      : project
+                )
+              );
+          })
+          .catch((error) => {
+              console.error("Error finishing project:", error);
+          });
+    };
+
+    return (
+        <>
+          <Row>
+              <Col xs={10}>
+                <h1>Projects</h1>
+              </Col>
+              <Col xs={2}>
+                <Link to="/projects/create">
+                    <Button variant="primary" className="float-end">
+                      Create project
+                    </Button>
+                </Link>
+              </Col>
+          </Row>
+
+          {projects.map((project) => (
+              <Card key={project.id} className="mb-3">
+                <Card.Body>
+                    <Row>
+                      <Col>
+                          <Card.Title>
+                            {project.name} -
+                            {project.is_finished ? " Finished" : " Not finished"}
+                          </Card.Title>
+                      </Col>
+                      <Col xs={2} className="d-flex justify-content-end gap-2">
+                          {!project.is_finished && (
+                            <Button
+                                variant="success"
+                                onClick={() => finish_project(project.id)}
+                            >
+                                Finish
+                            </Button>
+                          )}
+                          <Link to={`/projects/${project.id}`}>
+                            <Button variant="primary">View</Button>
+                          </Link>
+                          <Link to={`/projects/${project.id}/edit`}>
+                            <Button variant="warning">Edit</Button>
+                          </Link>
+                          <Button
+                            variant="danger"
+                            onClick={() => delete_project(project.id)}
+                          >
+                            Delete
+                          </Button>
+                      </Col>
+                    </Row>
+
+                    <Card.Text>{project.description}</Card.Text>
+                </Card.Body>
+              </Card>
+          ))}
+        </>
+    );
+  }
+
+  export default ProjectList;
+  ```
+</details>
+
+
 # 11. Register User Endpoint
 
 > [!TIP]
