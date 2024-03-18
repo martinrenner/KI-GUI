@@ -53,8 +53,9 @@ FastAPI powers our application's backend, offering high performance and easy-to-
 ### Setting Up FastAPI
 
 1. Create and move to `/backend`.
-2. Create a `main.py` file for your FastAPI application.
-3. Initialize FastAPI instance in `main.py` with following code:
+2. Create and move to `/src`.
+3. Create a `main.py` file for your FastAPI application.
+4. Initialize FastAPI instance in `main.py` with following code:
 
 <details>
   <summary>FastAPI Init Code</summary>
