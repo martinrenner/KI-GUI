@@ -1172,7 +1172,7 @@ The `map` function iterates over each `project` in the `projects` array, creatin
   import Header from "./components/Header/Header";
   import "bootstrap/dist/css/bootstrap.min.css";
   import { Container } from "react-bootstrap";
-  import ProjectList from "./components/Projects/ProjectList/ProjectList";
+  import ProjectList from "./components/Projects/ProjectsList/ProjectList";
 
   function App() {
     return (
@@ -1410,6 +1410,442 @@ Finally add `onClick={() => delete_project(project.id)}` to the button with Dele
   }
 
   export default ProjectList;
+  ```
+</details>
+
+# 8. Edit Project
+
+To create EditProject component: 
+1. In the 'Projects' folder, create a subfolder titled 'EditProject'.
+2. Within the 'EditProject' folder, create a file named 'ProjectEdit.tsx'.
+
+The `FormData` interface defines the structure of the data expected for the project being edited - fields for `name`, `description`, and `is_finished`.
+
+When the form is submitted, the `handleSubmit` function is triggered. It prevents the default form submission behavior, sends a PATCH request to update the project data at `http://localhost:8000/project/${project_id}`, and then redirects the user to the project's view page (next chapter) upon successful update. 
+
+The `handleInputChange` function updates the form state as the user types into the form fields. It's called whenever there's a change in the input fields.
+
+<details>
+  <summary>EditProject.tsx Code</summary>
+
+  ```tsx
+  import { ChangeEvent, useEffect, useState } from "react";
+  import { Button, Form, FormControl } from "react-bootstrap";
+  import { useNavigate, useParams } from "react-router-dom";
+
+  interface FormData {
+    name: string;
+    description: string;
+    is_finished: boolean;
+  }
+
+  function ProjectEdit() {
+   const { project_id } = useParams();
+   const navigate = useNavigate();
+   const [formData, setFormData] = useState<FormData>({
+      name: "",
+      description: "",
+      is_finished: false,
+   });
+
+   useEffect(() => {
+      fetch(`http://localhost:8000/project/${project_id}`, {
+         method: "GET",
+         headers: {
+            "Content-Type": "application/json",
+         },
+      })
+         .then((response) => {
+            if (response.ok) {
+               return response.json();
+            } else {
+               throw new Error("Failed to fetch project data");
+            }
+         })
+         .then((data) => {
+            setFormData({
+               name: data.name,
+               description: data.description,
+               is_finished: data.is_finished,
+            });
+         })
+         .catch((error) => {
+            console.error("Error fetching project data:", error.message);
+         });
+   }, []);
+
+   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+      e.preventDefault();
+
+      fetch(`http://localhost:8000/project/${project_id}`, {
+         method: "PATCH",
+         headers: {
+            "Content-Type": "application/json",
+         },
+         body: JSON.stringify(formData),
+      })
+         .then((response) => {
+            if (!response.ok) {
+               throw new Error("Failed to edit project");
+            }
+            return response.json();
+         })
+         .then((data) => {
+            navigate(`/projects/${data.id}`);
+         })
+         .catch((error) => {
+            console.error("Error:", error);
+         });
+   };
+
+   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+      const { name, value } = e.target;
+      setFormData({
+         ...formData,
+         [name]: value,
+      });
+   };
+
+   return (
+      <>
+         <h1>Edit Project</h1>
+         <Form onSubmit={handleSubmit}>
+            <Form.Group>
+               <Form.Label>Project Name</Form.Label>
+               <FormControl
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+               />
+            </Form.Group>
+            <Form.Group>
+               <Form.Label>Description</Form.Label>
+               <FormControl
+                  as="textarea"
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+               />
+            </Form.Group>
+            <Form.Group>
+               <Form.Check
+                  type="checkbox"
+                  label="Finished"
+                  name="is_finished"
+                  checked={formData.is_finished}
+                  onChange={(e) =>
+                     setFormData({
+                        ...formData,
+                        is_finished: e.target.checked,
+                     })
+                  }
+               />
+            </Form.Group>
+            <Button variant="primary" type="submit" className="mt-3">
+               Update
+            </Button>
+         </Form>
+      </>
+   );
+  }
+
+  export default ProjectEdit;
+  ```
+</details>
+
+In `App.tsx` we just need to import component `ProjectEdit` and add new route path. The `:project_id` part indicates a dynamic parameter in the URL, where any value can be substituted in place of `:project_id`.
+
+<details>
+  <summary>App.tsx Code</summary>
+
+  ```tsx
+  import { Route, BrowserRouter, Routes } from "react-router-dom";
+  import { Container } from "react-bootstrap";
+  import "bootstrap/dist/css/bootstrap.min.css";
+  import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";;
+  import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+  import Header from "./components/Header/Header.tsx";
+
+  function App() {
+    return (
+        <BrowserRouter>
+          <Header />
+          <Container className="mt-5">
+              <Routes>
+                <Route path="/projects/">
+                    <Route path="" element={<ProjectList />} />
+                    <Route path=":project_id/edit" element={<ProjectEdit />} />
+                </Route>
+              </Routes>
+          </Container>
+        </BrowserRouter>
+    );
+  }
+
+  export default App;
+```
+</details>
+
+# 9. Project View
+To create ProjectView component: 
+1. In the 'Projects' folder, create a subfolder titled 'ProjectView'.
+2. Within the 'ProjectView' folder, create a file named 'ProjectView.tsx'.
+
+This component uses the `useState` hook to manage the state of the `project` object. Initially, it's set to `undefined`. 
+
+The `useEffect` hook is called when the component mounts. It fetches the project data from the server using `fetch` API. If the request is successful, the project data is set in the state using `setProject`, otherwise it navigates the user back to the projects page ("/projects"). 
+
+Function `delete_project` sends a DELETE request to the server to delete the project with the given `project_id`.
+
+<details>
+  <summary>ProjectView.tsx Code</summary>
+
+  ```tsx
+  import { useEffect, useState } from "react";
+  import { Project } from "../../../interfaces/Project";
+  import { Link, useNavigate, useParams } from "react-router-dom";
+  import { Button } from "react-bootstrap";
+
+  function ProjectView() {
+   const navigate = useNavigate();
+   const { project_id } = useParams();
+   const [project, setProject] = useState<Project>();
+
+   useEffect(() => {
+      fetch(`http://localhost:8000/project/${project_id}`, {
+         method: "GET",
+         headers: {
+            contentType: "application/json",
+         },
+      })
+         .then((response) => {
+            if (response.ok) {
+               return response.json();
+            } else {
+               throw new Error("Failed to fetch project data");
+            }
+         })
+         .then((data) => {
+            setProject(data);
+         })
+         .catch((error) => {
+            navigate("/projects", { replace: true });
+            console.error("Error fetching project data:", error.message);
+         });
+   }, []);
+
+   const delete_project = (project_id: number) => {
+      fetch(`http://localhost:8000/project/${project_id}`, {
+         method: "DELETE",
+         headers: {
+            "Content-Type": "application/json",
+         },
+      }).then((response) => {
+         if (!response.ok) {
+            throw new Error("Failed to delete project");
+         }
+         navigate("/projects", { replace: true });
+      });
+   };
+
+   return (
+      <>
+         {project && (
+            <>
+               <h1>{project.name}</h1>
+               <hr />
+               <p>Finished: {project.is_finished ? "Yes" : "No"}</p>
+               <p>{project.description}</p>
+               <Link to={`/projects/${project.id}/edit`}>
+                  <Button variant="warning">Edit</Button>
+               </Link>
+               <Button
+                  variant="danger"
+                  onClick={() => delete_project(project.id)}
+                  className="ms-2"
+               >
+                  Delete
+               </Button>
+            </>
+         )}
+      </>
+   );
+  }
+
+  export default ProjectView;
+  ```
+</details>
+
+In `App.tsx` we just need to import component `ProjectView` and add new route path. The `:project_id` part indicates a dynamic parameter in the URL, where any value can be substituted in place of `:project_id`.
+
+<details>
+  <summary>App.tsx Code</summary>
+
+  ```tsx
+  import { Route, BrowserRouter, Routes } from "react-router-dom";
+  import { Container } from "react-bootstrap";
+  import "bootstrap/dist/css/bootstrap.min.css";
+  import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";;
+  import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+  import Header from "./components/Header/Header.tsx";
+
+  function App() {
+    return (
+        <BrowserRouter>
+          <Header />
+          <Container className="mt-5">
+              <Routes>
+                <Route path="/projects/">
+                    <Route path="" element={<ProjectList />} />
+                    <Route path=":project_id/edit" element={<ProjectEdit />} />
+                </Route>
+              </Routes>
+          </Container>
+        </BrowserRouter>
+    );
+  }
+
+  export default App;
+  ```
+</details>
+
+# 10. Create Project
+
+To create CreateProject component: 
+1. In the 'Projects' folder, create a subfolder titled 'CreateProject'.
+2. Within the 'CreateProject' folder, create a file named 'CreateProject.tsx'.
+
+`FormData` interface defines the structure of the form data. It consists of two fields: `name` and `description`, both of type string. 
+
+Inside the `ProjectCreate` function, it initializes a state variable `formData` using `useState`. This state variable holds the form data (name and description). It utilizes the `useNavigate` hook from `react-router-dom` to get a function for navigation. 
+
+Function `handleSubmit()` is triggered when the form is submitted. It makes a POST request to a local endpoint `http://localhost:8000/project`, sending the form data as JSON in the request body. If the response is successful, it parses the JSON response and navigates to the newly created project's page using the `navigate` function.
+
+Function `handleInputChange()` is called when there's a change in any of the input fields and updates the `formData` state by spreading the existing state and updating the field corresponding to the changed input. 
+
+<details>
+  <summary>CreateProject.tsx Code</summary>
+
+  ```tsx
+  import React, { ChangeEvent, useState } from "react";
+  import { Button, Form, FormControl } from "react-bootstrap";
+  import { useNavigate } from "react-router-dom";
+
+  interface FormData {
+    name: string;
+    description: string;
+  }
+
+  function ProjectCreate() {
+    const [formData, setFormData] = useState<FormData>({
+        name: "",
+        description: "",
+    });
+
+    const navigate = useNavigate();
+
+    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        fetch(`http://localhost:8000/project`, {
+          method: "POST",
+          headers: {
+              "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData),
+        })
+          .then((response) => {
+              if (!response.ok) {
+                throw new Error("Failed to create project");
+              }
+              return response.json();
+          })
+          .then((data) => {
+              navigate(`/projects/${data.id}`);
+          })
+          .catch((error) => {
+              console.error("Error:", error);
+          });
+    };
+
+    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+        const { name, value } = e.target;
+        setFormData({
+          ...formData,
+          [name]: value,
+        });
+    };
+
+    return (
+        <>
+          <h1>Create Project</h1>
+          <Form onSubmit={handleSubmit}>
+              <Form.Group>
+                <Form.Label>Project Name</Form.Label>
+                <FormControl
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                />
+              </Form.Group>
+              <Form.Group>
+                <Form.Label>Description</Form.Label>
+                <FormControl
+                    as="textarea"
+                    name="description"
+                    value={formData.description}
+                    onChange={handleInputChange}
+                />
+              </Form.Group>
+              <Button variant="primary" type="submit" className="mt-3">
+                Create
+              </Button>
+          </Form>
+        </>
+    );
+  }
+
+  export default ProjectCreate;
+  ```
+
+</details>
+
+In `App.tsx` we just need to import component `ProjectCreate` and add new route path. 
+
+<details>
+  <summary>App.tsx Code</summary>
+
+  ```tsx
+  import { Route, BrowserRouter, Routes } from "react-router-dom";
+  import { Container } from "react-bootstrap";
+  import "bootstrap/dist/css/bootstrap.min.css";
+  import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";
+  import ProjectView from "./components/Projects/ProjectView/ProjectView.tsx";
+  import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
+  import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+  import Header from "./components/Header/Header.tsx";
+
+  function App() {
+    return (
+        <BrowserRouter>
+          <Header />
+          <Container className="mt-5">
+              <Routes>
+                <Route path="/projects/">
+                    <Route path="create" element={<ProjectCreate />} />
+                    <Route path="" element={<ProjectList />} />
+                    <Route path=":project_id" element={<ProjectView />} />
+                    <Route path=":project_id/edit" element={<ProjectEdit />} />
+                </Route>
+              </Routes>
+          </Container>
+        </BrowserRouter>
+    );
+  }
+
+  export default App;
   ```
 </details>
 
