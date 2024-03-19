@@ -15,7 +15,7 @@ function ProjectView() {
       fetch(`http://localhost:8000/project/${project_id}`, {
         method: "GET",
         headers: {
-          contentType: "application/json",
+          "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
       })
