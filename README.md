@@ -454,7 +454,7 @@ The "Password" is the value of the variable `POSTGRES_PASSWORD` from `.env`.
 
 We will need a SQLAlchemy model to represent our projects in the application.
 
-## Task: Create a Model for Projects
+## ~~Task:~~ Create a Model for Projects
 
 In the `models.py` file, create a model named `Project` with the following attributes:
 
