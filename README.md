@@ -24,10 +24,10 @@ We've prepared checkpoints throughout the course to ensure that no student feels
 0. [Creating a Web Application with Python FastAPI, React(vite), Docker, PostgreSQL, and pgAdmin](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#0-creating-a-web-application-with-python-fastapi-react-vite-docker-postgresql-and-pgadmin)
 1. [Running the Application](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#1-running-the-application-fastapi-and-react) - Download: [Setup](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/1-setup.zip)
 2. [Setting Up Database Connection in FastAPI with PostgreSQL and SQLModel](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#2-setting-up-database-connection-in-fastapi-with-postgresql-and-sqlmodel) - Download: [Database](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/2-database.zip)
-3. [Models]
-4. [Create and Read]
-5. [Crud]
-6. [Pydantic]
+3. [SQL Alchemy Project Model](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#3-sql-alchemy-project-model) - Download: [Models](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/3-models.zip)
+4. [FastAPI Create and Read for Projects](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#4-FastAPI-Create-and-Read-Operations-for-Projects) - Download: [Create and Read](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/4-create_and_read.zip)
+5. [FastAPI and CRUD Operations for Projects](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#5-FastAPI-Update-and-Delete-Operations-for-Projects) - Download: [Update and Delete](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/5-crud.zip)
+6. [Pydantic](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#6-Pydantic-Validation-in-Python) - Download: [Pydantic](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/6-pydantic.zip)
 7. [List Projects]
 8. [Edit Project]
 9. [View Project]
@@ -479,7 +479,7 @@ class Project(SQLModel, table=True):
     is_finished: bool = False
 ```
 
-# FastAPI and CRUD Operations for Projects
+# 4. FastAPI Create and Read Operations for Projects
 
 Before we dive into adding functionality to our application, we should adjust its structure. When building a larger application, it's beneficial to organize it into multiple files, and that's exactly what we'll do. We'll divide the architecture of our API into 3 parts:
 
@@ -719,6 +719,8 @@ def read_all_projects(session: db_dependency):
 ...
 ```
 
+# 5. FastAPI Update and Delete Operations for Projects
+
 ## Update
 
 Now, let's add the ability to update project information to our application.
@@ -863,7 +865,7 @@ def delete_project(project_id: int, session: db_dependency):
 ...
 ```
 
-# Pydantic Validation in Python
+# 6. Pydantic Validation in Python
 
 Pydantic is a data validation and settings management library using Python type annotations. It allows for complex data schemas with automatic validation and conversion. This part demonstrates using Pydantic to define custom validation of project models in a Python application.
 
