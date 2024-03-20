@@ -75,19 +75,19 @@ function LoginForm() {
         }),
       })
         .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
+          if (!response.ok) {
             setErrorMessage("Login failed");
+            throw new Error("Login failed");
           }
+          return response.json();
         })
         .then((data) => {
+          setErrorMessage("");
           login(data.access_token);
           navigate("/projects");
         })
         .catch((error) => {
           console.error("Error:", error);
-          setErrorMessage("An error occurred");
         });
     }
   };

@@ -91,15 +91,14 @@ function RegisterForm() {
         body: JSON.stringify(formData),
       })
         .then((response) => {
-          if (response.ok) {
-            navigate("/login", { replace: true });
-          } else {
+          if (!response.ok) {
             setErrorMessage("Registration failed");
+            throw new Error("Registration Failed");
           }
+          navigate("/login", { replace: true });
         })
         .catch((error) => {
           console.error("Error:", error);
-          setErrorMessage("Failed to register");
         });
     }
   };

@@ -1,7 +1,7 @@
 import React from "react";
 
 interface TokenContextType {
-    token: string;
+    token: string | null | undefined;
     login: (newToken: string) => void,
     logout: () => void,
     isTokenValid: () => boolean,
