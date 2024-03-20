@@ -1070,8 +1070,8 @@ In TypeScript, an interface is a way to define the structure of an object. It de
 ## ProjectList
 To create ProjectList component: 
 1. Within the 'components' folder, create a subfolder titled 'Projects'.
-2. Inside the 'Projects' folder, establish another subfolder named 'ProjectsList'.
-3. Finally, within the 'ProjectsList' folder, create a file named 'ProjectList.tsx'.
+2. Inside the 'Projects' folder, establish another subfolder named 'ProjectList'.
+3. Finally, within the 'ProjectList' folder, create a file named 'ProjectList.tsx'.
 
 `useEffect()` is a React hook that lets you perform side effects in function components. Side effects can be anything that affects something outside the scope of the function being executed, like fetching data from an API, directly manipulating the DOM, etc. 
 
@@ -1175,7 +1175,7 @@ The `map` function iterates over each `project` in the `projects` array, creatin
   import Header from "./components/Header/Header";
   import "bootstrap/dist/css/bootstrap.min.css";
   import { Container } from "react-bootstrap";
-  import ProjectList from "./components/Projects/ProjectsList/ProjectList";
+  import ProjectList from "./components/Projects/ProjectList/ProjectList";
 
   function App() {
     return (
@@ -1201,7 +1201,7 @@ The `map` function iterates over each `project` in the `projects` array, creatin
 ### Delete Project
 Now we will define function to delete project. In this case we are making a DELETE request. If deletion on server side was successful `.then()` block is executed to update the local state, without need to refresh page.  
 
-ProjectsList.tsx
+ProjectList.tsx
 ```tsx
 // Other code 
 const delete_project = (project_id: number) => {
@@ -1233,7 +1233,7 @@ const delete_project = (project_id: number) => {
 ### Finish Project
 Now we will define function to mark project as finished. In this case we are making a PATCH request. The `body` of the request indicates the specific update to be made to the project marking it as finished. The `.then()` block is used to update projects local state. 
 
-ProjectsList.tsx
+ProjectList.tsx
 ```tsx
 // Other code 
 const finish_project = (project_id: number) => {
@@ -1567,7 +1567,7 @@ In `App.tsx` we just need to import component `ProjectEdit` and add new route pa
   import { Container } from "react-bootstrap";
   import "bootstrap/dist/css/bootstrap.min.css";
   import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";;
-  import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+  import ProjectList from "./components/Projects/ProjectList/ProjectList.tsx";
   import Header from "./components/Header/Header.tsx";
 
   function App() {
@@ -1690,7 +1690,7 @@ In `App.tsx` we just need to import component `ProjectView` and add new route pa
   import { Container } from "react-bootstrap";
   import "bootstrap/dist/css/bootstrap.min.css";
   import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";;
-  import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+  import ProjectList from "./components/Projects/ProjectList/ProjectList.tsx";
   import Header from "./components/Header/Header.tsx";
 
   function App() {
@@ -1827,7 +1827,7 @@ In `App.tsx` we just need to import component `ProjectCreate` and add new route 
   import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";
   import ProjectView from "./components/Projects/ProjectView/ProjectView.tsx";
   import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
-  import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+  import ProjectList from "./components/Projects/ProjectList/ProjectList.tsx";
   import Header from "./components/Header/Header.tsx";
 
   function App() {
@@ -2948,7 +2948,7 @@ To integrate these forms into your application, you'll need to modify your React
   
   ```typescript
   import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
-   import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+   import ProjectList from "./components/Projects/ProjectList/ProjectList.tsx";
    import Header from "./components/Header/Header.tsx";
    import Login from "./components/Login/Login.tsx";
    import Register from "./components/Register/Register.tsx";
@@ -3081,7 +3081,7 @@ To ensure that the `TokenContextProvider` is accessible throughout your applicat
   import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";
   import ProjectView from "./components/Projects/ProjectView/ProjectView.tsx";
   import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
-  import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+  import ProjectList from "./components/Projects/ProjectList/ProjectList.tsx";
   import Header from "./components/Header/Header.tsx";
   import Login from "./components/Login/Login.tsx";
   import Register from "./components/Register/Register.tsx";
@@ -3832,72 +3832,72 @@ To utilize the Authenticated component effectively, modifications to the React R
 <details>
   <summary>React Router Code</summary>
 
-  ```typescript
-  import { Route, BrowserRouter, Routes } from "react-router-dom";
-  import { Container } from "react-bootstrap";
-  import "bootstrap/dist/css/bootstrap.min.css";
-  import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";
-  import ProjectView from "./components/Projects/ProjectView/ProjectView.tsx";
-  import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
-  import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
-  import Header from "./components/Header/Header.tsx";
-  import Login from "./components/Login/Login.tsx";
-  import Register from "./components/Register/Register.tsx";
-  import TokenContextProvider from "./context/TokenContextProvider.tsx";
-  import Authenticated from "./components/Authenticated/Authenticated.tsx";
+```typescript
+import { Route, BrowserRouter, Routes } from "react-router-dom";
+import { Container } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";
+import ProjectView from "./components/Projects/ProjectView/ProjectView.tsx";
+import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
+import ProjectList from "./components/Projects/ProjectList/ProjectList.tsx";
+import Header from "./components/Header/Header.tsx";
+import Login from "./components/Login/Login.tsx";
+import Register from "./components/Register/Register.tsx";
+import TokenContextProvider from "./context/TokenContextProvider.tsx";
+import Authenticated from "./components/Authenticated/Authenticated.tsx";
   
-  function App() {
-    return (
-      <BrowserRouter>
-        <TokenContextProvider>
-          <Header />
-          <Container className="mt-5">
-            <Routes>
-              <Route path="login" element={<Login />} />
-              <Route path="register" element={<Register />} />
-              <Route path="/projects/">
-                <Route
-                  path="create"
-                  element={
-                    <Authenticated>
-                      <ProjectCreate />
-                    </Authenticated>
-                  }
-                />
-                <Route
-                  path=""
-                  element={
-                    <Authenticated>
-                      <ProjectList />
-                    </Authenticated>
-                  }
-                />
-                <Route
-                  path=":project_id"
-                  element={
-                    <Authenticated>
-                      <ProjectView />
-                    </Authenticated>
-                  }
-                />
-                <Route
-                  path=":project_id/edit"
-                  element={
-                    <Authenticated>
-                      <ProjectEdit />
-                    </Authenticated>
-                  }
-                />
-              </Route>
-            </Routes>
-          </Container>
-        </TokenContextProvider>
-      </BrowserRouter>
-    );
-  }
+function App() {
+  return (
+    <BrowserRouter>
+      <TokenContextProvider>
+        <Header />
+        <Container className="mt-5">
+          <Routes>
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route path="/projects/">
+              <Route
+                path="create"
+                element={
+                  <Authenticated>
+                    <ProjectCreate />
+                  </Authenticated>
+                }
+              />
+              <Route
+                path=""
+                element={
+                  <Authenticated>
+                    <ProjectList />
+                  </Authenticated>
+                }
+              />
+              <Route
+                path=":project_id"
+                element={
+                  <Authenticated>
+                    <ProjectView />
+                  </Authenticated>
+                }
+              />
+              <Route
+                path=":project_id/edit"
+                element={
+                  <Authenticated>
+                    <ProjectEdit />
+                  </Authenticated>
+                }
+              />
+            </Route>
+          </Routes>
+        </Container>
+      </TokenContextProvider>
+    </BrowserRouter>
+  );
+}
   
-  export default App;
-  ```
+export default App;
+```
 
 </details>
 
@@ -3922,35 +3922,35 @@ To improve the clarity and effectiveness of your API documentation, you can spec
 
 ```python
 description = """
- ## Usage and explanation
- 1. Register user `[POST] /user`
- 2. Login user `[POST] /auth/token` (create token)
- 3. Create project `[POST] /project`
- 4. Get projects `[GET] /project`
- """
+## Usage and explanation
+1. Register user `[POST] /user`
+2. Login user `[POST] /auth/token` (create token)
+3. Create project `[POST] /project`
+4. Get projects `[GET] /project`
+"""
 
- tags_metadata = [
-     {
-         "name": "Auth",
-         "description": "Operations with authentication. **No authorization required.**",
-     },
-     {
-         "name": "User",
-         "description": "Operations with users. **No authorization required.**",
-     },
-     {
-         "name": "Project",
-         "description": "Operations with projects. Basic CRUD operations. **Authorization required.**",
-     },
- ]
+tags_metadata = [
+    {
+        "name": "Auth",
+        "description": "Operations with authentication. **No authorization required.**",
+    },
+    {
+        "name": "User",
+        "description": "Operations with users. **No authorization required.**",
+    },
+    {
+        "name": "Project",
+        "description": "Operations with projects. Basic CRUD operations. **Authorization required.**",
+    },
+]
 
- app = FastAPI(
-     title="GUI APP",
-     summary="GUI APP - Project Manager Documentation",
-     description=description,
-     version="1.0.0",
-     openapi_tags=tags_metadata,
- )
+app = FastAPI(
+    title="GUI APP",
+    summary="GUI APP - Project Manager Documentation",
+    description=description,
+    version="1.0.0",
+    openapi_tags=tags_metadata,
+)
 ```
 
 In this setup:
