@@ -28,10 +28,10 @@ We've prepared checkpoints throughout the course to ensure that no student feels
 4. [FastAPI Create and Read for Projects](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#4-FastAPI-Create-and-Read-Operations-for-Projects) - Download: [Create and Read](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/4-create_and_read.zip)
 5. [FastAPI and CRUD Operations for Projects](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#5-FastAPI-Update-and-Delete-Operations-for-Projects) - Download: [Update and Delete](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/5-crud.zip)
 6. [Pydantic](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#6-Pydantic-Validation-in-Python) - Download: [Pydantic](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/6-pydantic.zip)
-7. [List Projects]
-8. [Edit Project]
-9. [View Project]
-10. [Create Project]
+7. [List Projects](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#7-project-list) - Download: [List Projects](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/7-ListProject.zip)
+8. [Edit Project](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#8-edit-project) - Download: [Edit Project](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/8-EditProject.zip)
+9. [View Project](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#9-project-view) - Download: [View Project](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/9-ViewProject.zip)
+10. [Create Project](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#10-create-project) - Download: [Create Project](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/10-CreateProject.zip)
 11. [Register User Endpoint](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#11-register-user-endpoint) - Download: [Register_user](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/11-register_user.zip)
 12. [Login User Endpoint](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#12-login-user-endpoint) - Download: [Login_user](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/12-login_user.zip)
 13. [Project Authentication](https://github.com/martinrenner/KI-GUI?tab=readme-ov-file#13-project-authentication) - Download: [Project_auth](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/13-project_auth.zip)
