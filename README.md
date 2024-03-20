@@ -1869,34 +1869,34 @@ The user model defines the structure of user data within the database. It includ
   <summary>User Model Code</summary>
 
   ```python
-  from sqlmodel import Field, SQLModel, BIGINT, VARCHAR
-  from sqlalchemy import Column
+from sqlmodel import Field, SQLModel, BIGINT, VARCHAR
+from sqlalchemy import Column
   
   
-  class Test(SQLModel, table=True):
-      __tablename__ = "test"
+class Test(SQLModel, table=True):
+    __tablename__ = "test"
   
-      id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
-  
-  
-  class Project(SQLModel, table=True):
-      __tablename__ = "project"
-  
-      id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
-      name: str
-      description: str
-      is_finished: bool = False
-      user_id: int = Field(foreign_key="user.id")
+    id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
   
   
-  class User(SQLModel, table=True):
-      __tablename__ = "user"
+class Project(SQLModel, table=True):
+    __tablename__ = "project"
   
-      id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
-      name: str
-      surname: str
-      email: str = Field(sa_column=Column(VARCHAR, unique=True))
-      hashed_password: str
+    id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
+    name: str
+    description: str
+    is_finished: bool = False
+    user_id: int = Field(foreign_key="user.id")
+  
+  
+class User(SQLModel, table=True):
+    __tablename__ = "user"
+  
+    id: int = Field(sa_column=Column(BIGINT, primary_key=True, autoincrement=True))
+    name: str
+    surname: str
+    email: str = Field(sa_column=Column(VARCHAR, unique=True))
+    hashed_password: str
   ```
 </details>
 
@@ -1908,71 +1908,71 @@ Pydantic schemas are used for request validation, serialization, and documentati
   <summary>User Schema Code</summary>
   
   ```python
-  from pydantic import BaseModel, ConfigDict, Field, field_validator, EmailStr
-  from pydantic_core.core_schema import FieldValidationInfo
-  import re
-  from models import User
+from pydantic import BaseModel, ConfigDict, Field, field_validator, EmailStr
+from pydantic_core.core_schema import FieldValidationInfo
+import re
+from models import User
   
   
-  class UserBase(BaseModel):
-      model_config = ConfigDict(extra="forbid")
+class UserBase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
   
   
-  class UserCreate(UserBase):
-      name: str = Field(..., examples=["Your name"], min_length=3, max_length=100)
-      surname: str = Field(..., examples=["Your surname"], min_length=3, max_length=100)
-      email: EmailStr = Field(..., examples=["email@example.com"], min_length=3, max_length=100)
-      password: str = Field(..., examples=["MyPassword123"], min_length=3, max_length=100)
-      password_confirmation: str = Field(..., examples=["MyPassword123"], min_length=3, max_length=100)
+class UserCreate(UserBase):
+    name: str = Field(..., examples=["Your name"], min_length=3, max_length=100)
+    surname: str = Field(..., examples=["Your surname"], min_length=3, max_length=100)
+    email: EmailStr = Field(..., examples=["email@example.com"], min_length=3, max_length=100)
+    password: str = Field(..., examples=["MyPassword123"], min_length=3, max_length=100)
+    password_confirmation: str = Field(..., examples=["MyPassword123"], min_length=3, max_length=100)
   
-      @field_validator("name", mode="before")
-      def validate_name(cls, value):
-          if len(value) < 3 or len(value) > 100:
-              raise ValueError("Name must be between 3 and 100 characters long")
-          return value
+    @field_validator("name", mode="before")
+    def validate_name(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Name must be between 3 and 100 characters long")
+        return value
   
-      @field_validator("surname", mode="before")
-      def validate_surname(cls, value):
-          if len(value) < 3 or len(value) > 100:
-              raise ValueError("Surname must be between 3 and 100 characters long")
-          return value
+    @field_validator("surname", mode="before")
+    def validate_surname(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Surname must be between 3 and 100 characters long")
+        return value
   
-      @field_validator("email", mode="before")
-      def validate_email(cls, value):
-          if len(value) < 3 or len(value) > 100:
-              raise ValueError("Invalid email length")
-          if re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", value) is None:
-              raise ValueError("Invalid email address")
-          return value
+    @field_validator("email", mode="before")
+    def validate_email(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Invalid email length")
+        if re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", value) is None:
+            raise ValueError("Invalid email address")
+        return value
   
-      @field_validator("password", mode="before")
-      def validate_password(cls, value, info: FieldValidationInfo):
-          if len(value) < 3 or len(value) > 100:
-              raise ValueError("Password must be between 3 and 100 characters long")
-          return value
+    @field_validator("password", mode="before")
+    def validate_password(cls, value, info: FieldValidationInfo):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Password must be between 3 and 100 characters long")
+        return value
   
-      @field_validator("password_confirmation", mode="before")
-      def validate_password_confirmation(cls, value, info: FieldValidationInfo):
-          password = info.data.get("password")
-          if value != password:
-              raise ValueError("Passwords do not match")
-          return value
+    @field_validator("password_confirmation", mode="before")
+    def validate_password_confirmation(cls, value, info: FieldValidationInfo):
+        password = info.data.get("password")
+        if value != password:
+            raise ValueError("Passwords do not match")
+        return value
   
   
-  class UserRead(UserBase):
-      id: int
-      name: str
-      surname: str
-      email: EmailStr
+class UserRead(UserBase):
+    id: int
+    name: str
+    surname: str
+    email: EmailStr
   
-      @classmethod
-      def from_user(cls, user: User):
-          return cls(
-              id=user.id,
-              name=user.name,
-              surname=user.surname,
-              email=user.email,
-          )
+    @classmethod
+    def from_user(cls, user: User):
+        return cls(
+            id=user.id,
+            name=user.name,
+            surname=user.surname,
+            email=user.email,
+        )
   ```
 </details>
 
@@ -1984,24 +1984,24 @@ The user service layer encapsulates the business logic for user management, incl
   <summary>User Service Code</summary>
   
   ```python
-  from sqlmodel import Session
-  from schemas.user import UserCreate
-  from models import User
-  from database import commit_and_handle_exception, refresh_and_handle_exception
+from sqlmodel import Session
+from schemas.user import UserCreate
+from models import User
+from database import commit_and_handle_exception, refresh_and_handle_exception
   
   
-  class UserService:
-      def insert_user_db(self, user_create: UserCreate, session: Session):
-          new_user = User(
-              name=user_create.name.strip(),
-              surname=user_create.surname.strip(),
-              email=user_create.email.strip(),
-              hashed_password=user_create.password.strip(),
-          )
-          session.add(new_user)
-          commit_and_handle_exception(session)
-          refresh_and_handle_exception(session, new_user)
-          return new_user
+class UserService:
+    def insert_user_db(self, user_create: UserCreate, session: Session):
+        new_user = User(
+            name=user_create.name.strip(),
+            surname=user_create.surname.strip(),
+            email=user_create.email.strip(),
+            hashed_password=user_create.password.strip(),
+        )
+        session.add(new_user)
+        commit_and_handle_exception(session)
+        refresh_and_handle_exception(session, new_user)
+        return new_user
   
   ```
 </details>
@@ -2014,34 +2014,34 @@ The user router handles HTTP requests related to user operations. The create_use
   <summary>User Router Code</summary>
 
   ```python
-  from typing import Annotated
-  from fastapi import APIRouter, Depends
-  from services.user_service import UserService
-  from schemas.user import UserCreate, UserRead
-  from database import get_session
-  from sqlmodel import Session
+from typing import Annotated
+from fastapi import APIRouter, Depends
+from services.user_service import UserService
+from schemas.user import UserCreate, UserRead
+from database import get_session
+from sqlmodel import Session
   
-  user_router = APIRouter(prefix="/user", tags=["User"])
+user_router = APIRouter(prefix="/user", tags=["User"])
+ 
+db_dependency = Annotated[Session, Depends(get_session)]
   
-  db_dependency = Annotated[Session, Depends(get_session)]
-  
-  user_service = UserService()
+user_service = UserService()
   
   
-  @user_router.post("/", response_model=UserRead)
-  def create_user(user_create: UserCreate, session: db_dependency):
-      """
-      ## Create a new user (**register**)
+@user_router.post("/", response_model=UserRead)
+def create_user(user_create: UserCreate, session: db_dependency):
+    """
+    ## Create a new user (**register**)
   
-      This endpoint will create a new user in the database.
+    This endpoint will create a new user in the database.
   
-      - **user_create**: User object
-  
-      Returns:
-      - `user`: User object
-      """
-      user = user_service.insert_user_db(user_create, session)
-      return UserRead.from_user(user)
+    - **user_create**: User object
+ 
+    Returns:
+    - `user`: User object
+    """
+    user = user_service.insert_user_db(user_create, session)
+    return UserRead.from_user(user)
   
   ```
 </details>
@@ -2054,40 +2054,40 @@ Finally you need to include new router in `main.py`
   <summary>Include User Router Code</summary>
   
   ```python
-  from fastapi import FastAPI
-  import os
-  from database_init import initialize_database
-  from routers.project import project_router  # Import our new projet_router
-  from routers.user import user_router  # Import our new user_router
-  from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI
+import os
+from database_init import initialize_database
+from routers.project import project_router  # Import our new projet_router
+from routers.user import user_router  # Import our new user_router
+from fastapi.middleware.cors import CORSMiddleware
   
-  ALLOWED_ORIGIN: list = os.getenv("CORS_ALLOWED_ORIGIN", "http://localhost:8000").replace(" ", "").split(",")
-  ALLOWED_METHODS: list = os.getenv("CORS_ALLOWED_METHODS", "GET, POST, PUT, DELETE, PATCH").replace(" ", "").split(",")
-  ALLOWED_HEADERS: list = os.getenv("CORS_ALLOWED_HEADERS", "*").replace(" ", "").split(",")
-  ALLOW_CREDENTIALS: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "TRUE") == "TRUE"
-  MAX_AGE: int = int(os.getenv("CORS_MAX_AGE", 600))
-  
-  
-  app = FastAPI()
-  app.include_router(project_router)
-  app.include_router(user_router)
-  
-  app.add_middleware(
-      CORSMiddleware,
-      allow_origins=ALLOWED_ORIGIN,
-      allow_credentials=ALLOW_CREDENTIALS,
-      allow_methods=ALLOWED_METHODS,
-      allow_headers=ALLOWED_HEADERS,
-      max_age=MAX_AGE,
-  )
+ALLOWED_ORIGIN: list = os.getenv("CORS_ALLOWED_ORIGIN", "http://localhost:8000").replace(" ", "").split(",")
+ALLOWED_METHODS: list = os.getenv("CORS_ALLOWED_METHODS", "GET, POST, PUT, DELETE, PATCH").replace(" ", "").split(",")
+ALLOWED_HEADERS: list = os.getenv("CORS_ALLOWED_HEADERS", "*").replace(" ", "").split(",")
+ALLOW_CREDENTIALS: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "TRUE") == "TRUE"
+MAX_AGE: int = int(os.getenv("CORS_MAX_AGE", 600))
   
   
-  @app.get("/")
-  def root():
-      return {"message": "Hello World"}
+app = FastAPI()
+app.include_router(project_router)
+app.include_router(user_router)
+  
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGIN,
+    allow_credentials=ALLOW_CREDENTIALS,
+    allow_methods=ALLOWED_METHODS,
+    allow_headers=ALLOWED_HEADERS,
+    max_age=MAX_AGE,
+)
   
   
-  initialize_database()
+@app.get("/")
+def root():
+    return {"message": "Hello World"}
+  
+  
+initialize_database()
   ```
 </details>
 
@@ -2108,50 +2108,50 @@ The AccessToken class is responsible for creating and verifying JWTs. It uses th
   <summary>Access Token Code</summary>
   
   ```python
-  from datetime import datetime, timedelta
-   import os
-   from typing import Annotated
-   from fastapi import Depends, HTTPException
-   from fastapi.security import OAuth2PasswordBearer
-   from jose import jwt
-   from models import User
-  
-   SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "ULTRA_SECRET_KEY")
-   ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
-   ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 10))
-  
-   oaouth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token")
-  
-  
-   class AccessToken:
-       @staticmethod
-       def create_token(user: User):
-           token_payload = {
-               "sub": user.email,
-               "id": user.id,
-               "iat": datetime.utcnow(),
-               "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
-               "typ": "Access",
-           }
-           return jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
-  
-       @staticmethod
-       def verify_token(token: Annotated[str, Depends(oaouth2_bearer)]):
-           try:
-               payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-               email: str = payload.get("sub")
-               user_id: int = payload.get("id")
-               exp: int = payload.get("exp")
-               typ: str = payload.get("typ")
-  
-               if exp is not None and exp < datetime.utcnow().timestamp():
-                   raise HTTPException(status_code=401, detail="Access token expired")
-  
-               if email is None or user_id is None or typ != "Access":
-                   raise HTTPException(status_code=401, detail="Invalid access token")
-               return User(email=email, id=user_id)
-           except jwt.JWTError:
-               raise HTTPException(status_code=401, detail="Invalid token")
+from datetime import datetime, timedelta, timezone
+import os
+from typing import Annotated
+from fastapi import Depends, HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from jose import jwt
+from models import User
+
+SECRET_KEY: str = os.getenv("JWT_SECRET_KEY", "ULTRA_SECRET_KEY")
+ALGORITHM: str = os.getenv("JWT_ALGORITHM", "HS256")
+ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 10))
+
+oaouth2_bearer = OAuth2PasswordBearer(tokenUrl="auth/token")
+
+
+class AccessToken:
+    @staticmethod
+    def create_token(user: User):
+        token_payload = {
+            "sub": user.email,
+            "id": user.id,
+            "iat": datetime.now(timezone.utc),
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+            "typ": "Access",
+        }
+        return jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
+    
+    @staticmethod
+    def verify_token(token: Annotated[str, Depends(oaouth2_bearer)]):
+        try:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            email: str = payload.get("sub")
+            user_id: int = payload.get("id")
+            exp: int = payload.get("exp")
+            typ: str = payload.get("typ")
+
+            if exp is not None and exp < datetime.now(timezone.utc).timestamp():
+                raise HTTPException(status_code=401, detail="Access token expired")
+
+            if email is None or user_id is None or typ != "Access":
+                raise HTTPException(status_code=401, detail="Invalid access token")
+            return User(email=email, id=user_id)
+        except jwt.JWTError:
+            raise HTTPException(status_code=401, detail="Invalid token")
   ```
 </details>
 
@@ -2163,30 +2163,30 @@ The `TokenRead` schema defines the structure of the response that the login endp
   <summary>Token Schema Code</summary>
   
   ```python
-  from pydantic import BaseModel, ConfigDict, Field, field_validator
-   from typing import Optional
-   from tokens.access_token import AccessToken
-   import os
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+from typing import Optional
+from tokens.access_token import AccessToken
+import os
   
-   ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 10))
-  
-  
-   class TokenBase(BaseModel):
-       model_config = ConfigDict(extra="forbid")
+ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 10))
   
   
-   class TokenRead(TokenBase):
-       access_token: str
-       expires_in: int
-       token_type: str
+class TokenBase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
   
-       @classmethod
-       def from_auth(cls, access_token: AccessToken):
-           return cls(
-               access_token=access_token,
-               expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
-               token_type="Bearer",
-           )
+  
+class TokenRead(TokenBase):
+    access_token: str
+    expires_in: int
+    token_type: str
+  
+    @classmethod
+    def from_auth(cls, access_token: AccessToken):
+        return cls(
+            access_token=access_token,
+            expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+            token_type="Bearer",
+        )
   ```
 </details>
 
@@ -2198,59 +2198,59 @@ The UserLogin schema is used to validate the login request data. It requires the
   <summary>User Schema Code</summary>
   
   ```python
-  from pydantic import BaseModel, ConfigDict, Field, field_validator, EmailStr
-  from pydantic_core.core_schema import FieldValidationInfo
-  import re
+from pydantic import BaseModel, ConfigDict, Field, field_validator, EmailStr
+from pydantic_core.core_schema import FieldValidationInfo
+import re
   
   
-  class UserBase(BaseModel):
-      model_config = ConfigDict(extra="forbid")
+class UserBase(BaseModel):
+    model_config = ConfigDict(extra="forbid")
   
   
-  class UserCreate(UserBase):
-      name: str = Field(..., examples=["Your name"], min_length=3, max_length=100)
-      surname: str = Field(..., examples=["Your surname"], min_length=3, max_length=100)
-      email: EmailStr = Field(..., examples=["email@example.com"], min_length=3, max_length=100)
-      password: str = Field(..., examples=["MyPassword123"], min_length=3, max_length=100)
-      password_confirmation: str = Field(..., examples=["MyPassword123"], min_length=3, max_length=100)
+class UserCreate(UserBase):
+    name: str = Field(..., examples=["Your name"], min_length=3, max_length=100)
+    surname: str = Field(..., examples=["Your surname"], min_length=3, max_length=100)
+    email: EmailStr = Field(..., examples=["email@example.com"], min_length=3, max_length=100)
+    password: str = Field(..., examples=["MyPassword123"], min_length=3, max_length=100)
+    password_confirmation: str = Field(..., examples=["MyPassword123"], min_length=3, max_length=100)
+ 
+    @field_validator("name", mode="before")
+    def validate_name(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Name must be between 3 and 100 characters long")
+        return value
+
+    @field_validator("surname", mode="before")
+    def validate_surname(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Surname must be between 3 and 100 characters long")
+        return value
+ 
+    @field_validator("email", mode="before")
+    def validate_email(cls, value):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Invalid email length")
+        if re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", value) is None:
+            raise ValueError("Invalid email address")
+        return value
+ 
+    @field_validator("password", mode="before")
+    def validate_password(cls, value, info: FieldValidationInfo):
+        if len(value) < 3 or len(value) > 100:
+            raise ValueError("Password must be between 3 and 100 characters long")
+        return value
   
-      @field_validator("name", mode="before")
-      def validate_name(cls, value):
-          if len(value) < 3 or len(value) > 100:
-              raise ValueError("Name must be between 3 and 100 characters long")
-          return value
-  
-      @field_validator("surname", mode="before")
-      def validate_surname(cls, value):
-          if len(value) < 3 or len(value) > 100:
-              raise ValueError("Surname must be between 3 and 100 characters long")
-          return value
-  
-      @field_validator("email", mode="before")
-      def validate_email(cls, value):
-          if len(value) < 3 or len(value) > 100:
-              raise ValueError("Invalid email length")
-          if re.match(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$", value) is None:
-              raise ValueError("Invalid email address")
-          return value
-  
-      @field_validator("password", mode="before")
-      def validate_password(cls, value, info: FieldValidationInfo):
-          if len(value) < 3 or len(value) > 100:
-              raise ValueError("Password must be between 3 and 100 characters long")
-          return value
-  
-      @field_validator("password_confirmation", mode="before")
-      def validate_password_confirmation(cls, value, info: FieldValidationInfo):
-          password = info.data.get("password")
-          if value != password:
-              raise ValueError("Passwords do not match")
-          return value
+    @field_validator("password_confirmation", mode="before")
+    def validate_password_confirmation(cls, value, info: FieldValidationInfo):
+        password = info.data.get("password")
+        if value != password:
+            raise ValueError("Passwords do not match")
+        return value
   
   
-  class UserLogin(UserBase):
-      email: str
-      password: str
+class UserLogin(UserBase):
+    email: str
+    password: str
   ```
 </details>
 
@@ -2261,34 +2261,34 @@ The AuthService class contains methods to verify a user's email and password aga
   <summary>Auth Service Code</summary>
   
   ```python
-  from fastapi import HTTPException
-   from sqlmodel import Session, select
-   from schemas.user import UserLogin
-   from models import User
-   from fastapi.security import OAuth2PasswordBearer
-   from passlib.context import CryptContext
+from fastapi import HTTPException
+from sqlmodel import Session, select
+from schemas.user import UserLogin
+from models import User
+from fastapi.security import OAuth2PasswordBearer
+from passlib.context import CryptContext
   
   
-   bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+bcrypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
   
   
-   class AuthService:
-       def verify_user_and_password(self, user_data: OAuth2PasswordBearer, session: Session):
-           user_data = UserLogin(email=user_data.username, password=user_data.password)
-           user = self._verify_user(user_data, session)
-           self._verify_password(user_data.password, user.hashed_password)
-           return user
+class AuthService:
+    def verify_user_and_password(self, user_data: OAuth2PasswordBearer, session: Session):
+        user_data = UserLogin(email=user_data.username, password=user_data.password)
+        user = self._verify_user(user_data, session)
+        self._verify_password(user_data.password, user.hashed_password)
+        return user
   
-       def _verify_user(self, user_login: User, session: Session):
-           query = select(User).where(User.email == user_login.email.strip())
-           user = session.exec(query).first()
-           if not user:
-               raise HTTPException(status_code=401, detail="Invalid user")
-           return user
+    def _verify_user(self, user_login: User, session: Session):
+        query = select(User).where(User.email == user_login.email.strip())
+        user = session.exec(query).first()
+        if not user:
+            raise HTTPException(status_code=401, detail="Invalid user")
+        return user
   
-       def _verify_password(self, plain_password: str, hashed_password: str):
-           if not bcrypt_context.verify(plain_password.strip(), hashed_password):
-               raise HTTPException(status_code=401, detail="Invalid password")
+    def _verify_password(self, plain_password: str, hashed_password: str):
+        if not bcrypt_context.verify(plain_password.strip(), hashed_password):
+            raise HTTPException(status_code=401, detail="Invalid password")
   ```
 </details>
 
@@ -2300,25 +2300,25 @@ When registering a new user, their password is hashed using bcrypt before being 
   <summary>Hash User Password Code</summary>
   
   ```python
-  from sqlmodel import Session
-  from schemas.user import UserCreate
-  from models import User
-  from database import commit_and_handle_exception, refresh_and_handle_exception
-  from services.auth_service import bcrypt_context
+from sqlmodel import Session
+from schemas.user import UserCreate
+from models import User
+from database import commit_and_handle_exception, refresh_and_handle_exception
+from services.auth_service import bcrypt_context
   
   
-  class UserService:
-      def insert_user_db(self, user_create: UserCreate, session: Session):
-          new_user = User(
-              name=user_create.name.strip(),
-              surname=user_create.surname.strip(),
-              email=user_create.email.strip(),
-              hashed_password=bcrypt_context.hash(user_create.password.strip()),
-          )
-          session.add(new_user)
-          commit_and_handle_exception(session)
-          refresh_and_handle_exception(session, new_user)
-          return new_user
+class UserService:
+    def insert_user_db(self, user_create: UserCreate, session: Session):
+        new_user = User(
+            name=user_create.name.strip(),
+            surname=user_create.surname.strip(),
+            email=user_create.email.strip(),
+            hashed_password=bcrypt_context.hash(user_create.password.strip()),
+        )
+        session.add(new_user)
+        commit_and_handle_exception(session)
+        refresh_and_handle_exception(session, new_user)
+        return new_user
   ```
 </details>
 
@@ -2332,27 +2332,27 @@ Finally, the `auth_router` is included in the FastAPI application to handle auth
   </summary>
 	
   ```python
-	from typing import Annotated
-	from fastapi import APIRouter, Depends
-	from fastapi.security import OAuth2PasswordRequestForm
-	from tokens.access_token import AccessToken
-	from services.auth_service import AuthService
-	from schemas.token import TokenRead
-	from database import get_session
-	from sqlmodel import Session
-	import os
+from typing import Annotated
+from fastapi import APIRouter, Depends
+from fastapi.security import OAuth2PasswordRequestForm
+from tokens.access_token import AccessToken
+from services.auth_service import AuthService
+from schemas.token import TokenRead
+from database import get_session
+from sqlmodel import Session
+import os
 
-	ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 10))
+ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 10))
 
-	auth_router = APIRouter(prefix="/auth", tags=["Auth"])
+ auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
-	db_dependency = Annotated[Session, Depends(get_session)]
+db_dependency = Annotated[Session, Depends(get_session)]
 
-	auth_service = AuthService()
+ auth_service = AuthService()
 
 
-	@auth_router.post("/token", response_model=TokenRead)
-	def token_user(user_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: db_dependency):
+@auth_router.post("/token", response_model=TokenRead)
+def token_user(user_data: Annotated[OAuth2PasswordRequestForm, Depends()], session: db_dependency):
     """
     ## Generate a token
 
@@ -2376,42 +2376,42 @@ Finally, the `auth_router` is included in the FastAPI application to handle auth
   <summary>Include Auth Router Code</summary>
   
   ```python
-  from fastapi import FastAPI
-  import os
-  from database_init import initialize_database
-  from routers.project import project_router  # Import our new projet_router
-  from routers.user import user_router  # Import our new user_router
-  from routers.auth import auth_router  # Import our new auth_router
-  from fastapi.middleware.cors import CORSMiddleware
-  
-  ALLOWED_ORIGIN: list = os.getenv("CORS_ALLOWED_ORIGIN", "http://localhost:8000").replace(" ", "").split(",")
-  ALLOWED_METHODS: list = os.getenv("CORS_ALLOWED_METHODS", "GET, POST, PUT, DELETE, PATCH").replace(" ", "").split(",")
-  ALLOWED_HEADERS: list = os.getenv("CORS_ALLOWED_HEADERS", "*").replace(" ", "").split(",")
-  ALLOW_CREDENTIALS: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "TRUE") == "TRUE"
-  MAX_AGE: int = int(os.getenv("CORS_MAX_AGE", 600))
-  
-  
-  app = FastAPI()
-  app.include_router(project_router)
-  app.include_router(user_router)
-  app.include_router(auth_router)
-  
-  app.add_middleware(
-      CORSMiddleware,
-      allow_origins=ALLOWED_ORIGIN,
-      allow_credentials=ALLOW_CREDENTIALS,
-      allow_methods=ALLOWED_METHODS,
-      allow_headers=ALLOWED_HEADERS,
-      max_age=MAX_AGE,
-  )
+from fastapi import FastAPI
+import os
+from database_init import initialize_database
+from routers.project import project_router  # Import our new projet_router
+from routers.user import user_router  # Import our new user_router
+from routers.auth import auth_router  # Import our new auth_router
+from fastapi.middleware.cors import CORSMiddleware
+
+ALLOWED_ORIGIN: list = os.getenv("CORS_ALLOWED_ORIGIN", "http://localhost:8000").replace(" ", "").split(",")
+ALLOWED_METHODS: list = os.getenv("CORS_ALLOWED_METHODS", "GET, POST, PUT, DELETE, PATCH").replace(" ", "").split(",")
+ALLOWED_HEADERS: list = os.getenv("CORS_ALLOWED_HEADERS", "*").replace(" ", "").split(",")
+ALLOW_CREDENTIALS: bool = os.getenv("CORS_ALLOW_CREDENTIALS", "TRUE") == "TRUE"
+MAX_AGE: int = int(os.getenv("CORS_MAX_AGE", 600))
   
   
-  @app.get("/")
-  def root():
-      return {"message": "Hello World"}
+app = FastAPI()
+app.include_router(project_router)
+app.include_router(user_router)
+app.include_router(auth_router)
+  
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGIN,
+    allow_credentials=ALLOW_CREDENTIALS,
+    allow_methods=ALLOWED_METHODS,
+    allow_headers=ALLOWED_HEADERS,
+    max_age=MAX_AGE,
+)
   
   
-  initialize_database()
+@app.get("/")
+def root():
+    return {"message": "Hello World"}
+  
+  
+initialize_database()
   ```
 </details>
 
@@ -2432,102 +2432,99 @@ The project router defines the endpoints for creating, retrieving, updating, and
   <summary>Project Router Code</summary>
   
   ```python
-  from typing import Annotated
-  from fastapi import APIRouter, Depends
-  from tokens.access_token import AccessToken
-  from services.project_service import ProjectService
-  from schemas.project import ProjectRead, ProjectCreate, ProjectUpdatePartial
-  from database import get_session
-  from sqlmodel import Session
+from typing import Annotated
+from fastapi import APIRouter, Depends
+from tokens.access_token import AccessToken
+from services.project_service import ProjectService
+from schemas.project import ProjectRead, ProjectCreate, ProjectUpdatePartial
+from database import get_session
+from sqlmodel import Session
+   
+project_router = APIRouter(prefix="/project", tags=["Project"])
+ 
+db_dependency = Annotated[Session, Depends(get_session)]
+user_dependency = Annotated[dict, Depends(AccessToken.verify_token)]
+  
+project_service = ProjectService()
   
   
-  project_router = APIRouter(prefix="/project", tags=["Project"])
+@project_router.post("/", response_model=ProjectRead)
+def create_project(project_create: ProjectCreate, user: user_dependency, session: db_dependency):
+    """
+    ## Create a new project
+
+    This endpoint will create a new project in the database.
+
+    - **project_create**: Project object
+
+    Returns:
+    - `project`: Project object
+    """
+    new_project = project_service.insert_project_db(project_create, user.id, session)
+    return ProjectRead.from_project(new_project)
+
   
-  db_dependency = Annotated[Session, Depends(get_session)]
-  user_dependency = Annotated[dict, Depends(AccessToken.verify_token)]
-  
-  project_service = ProjectService()
-  
-  
-  @project_router.post("/", response_model=ProjectRead)
-  def create_project(project_create: ProjectCreate, user: user_dependency, session: db_dependency):
-      """
-      ## Create a new project
-  
-      This endpoint will create a new project in the database.
-  
-      - **project_create**: Project object
-  
-      Returns:
-      - `project`: Project object
-      """
-      new_project = project_service.insert_project_db(project_create, user.id, session)
-      return ProjectRead.from_project(new_project)
-  
-  
-  @project_router.get("/{project_id}", response_model=ProjectRead)
-  def read_project(project_id: int, user: user_dependency, session: db_dependency):
-      """
-      ## Retrieve a project from the database
-  
-      This endpoint will return a project based on the ID passed on provided project_id.
-  
-      - **project_id**: ID of the project to retrieve
-  
-      Returns:
-      - `project`: Project object
-      """
-      project = project_service.select_project_by_id_db(project_id, user.id, session)
-      return ProjectRead.from_project(project)
+@project_router.get("/{project_id}", response_model=ProjectRead)
+def read_project(project_id: int, user: user_dependency, session: db_dependency):
+    """
+    ## Retrieve a project from the database
+
+    This endpoint will return a project based on the ID passed on provided project_id.
+
+    - **project_id**: ID of the project to retrieve
+
+    Returns:
+    - `project`: Project object
+    """
+    project = project_service.select_project_by_id_db(project_id, user.id, session)
+    return ProjectRead.from_project(project)
   
   
-  @project_router.get("/", response_model=list[ProjectRead])
-  def read_all_projects(user: user_dependency, session: db_dependency):
-      """
-      ## Retrieve all projects from the database
+@project_router.get("/", response_model=list[ProjectRead])
+def read_all_projects(user: user_dependency, session: db_dependency):
+    """
+    ## Retrieve all projects from the database
   
-      This endpoint will return all projects in the database.
+    This endpoint will return all projects in the database.
   
-      Returns:
-      - `projects`: List of project objects
-      """
-      projects = project_service.select_all_projects_db(user.id, session)
-      return [ProjectRead.from_project(project) for project in projects]
+    Returns:
+    - `projects`: List of project objects
+    """
+    projects = project_service.select_all_projects_db(user.id, session)
+    return [ProjectRead.from_project(project) for project in projects]
+ 
   
+@project_router.patch("/{project_id}", response_model=ProjectRead)
+def update_project_partial(project_id: int, project_update: ProjectUpdatePartial, user: user_dependency, session: db_dependency):
+    """
+    ## Update a project (partial)
+ 
+    This endpoint will update a project in the database.
+
+    - **project_id**: ID of the project to update
+    - **project_update**: Project object
   
-  @project_router.patch("/{project_id}", response_model=ProjectRead)
-  def update_project_partial(
-      project_id: int, project_update: ProjectUpdatePartial, user: user_dependency, session: db_dependency
-  ):
-      """
-      ## Update a project (partial)
-  
-      This endpoint will update a project in the database.
-  
-      - **project_id**: ID of the project to update
-      - **project_update**: Project object
-  
-      Returns:
-      - `project`: Project object
-      """
-      updated_project = project_service.update_partial_project_by_id_db(project_id, project_update, user.id, session)
-      return ProjectRead.from_project(updated_project)
+    Returns:
+    - `project`: Project object
+    """
+    updated_project = project_service.update_partial_project_by_id_db(project_id, project_update, user.id, session)
+    return ProjectRead.from_project(updated_project)
   
   
-  @project_router.delete("/{project_id}")
-  def delete_project(project_id: int, user: user_dependency, session: db_dependency):
-      """
-      ## Delete a project
-  
-      This endpoint will delete a project from the database.
-  
-      - **project_id**: ID of the project to delete
-  
-      Returns:
-      - `message`: Message indicating that the project was deleted
-      """
-      project_service.delete_project_by_id_db(project_id, user.id, session)
-      return {"message": "Project deleted"}
+@project_router.delete("/{project_id}")
+def delete_project(project_id: int, user: user_dependency, session: db_dependency):
+    """
+    ## Delete a project
+
+    This endpoint will delete a project from the database.
+
+    - **project_id**: ID of the project to delete
+
+    Returns:
+    - `message`: Message indicating that the project was deleted
+    """
+    project_service.delete_project_by_id_db(project_id, user.id, session)
+    return {"message": "Project deleted"}
   ```
 </details>
 
@@ -2541,60 +2538,60 @@ The project service layer contains the business logic for managing project resou
   <summary>Project Service Code</summary>
   
   ```python
-  from fastapi import HTTPException
-  from helpers import update_object_attributes
-  from models import Project
-  from sqlmodel import Session, select
-  from schemas.project import ProjectCreate, ProjectUpdatePartial
-  from database import commit_and_handle_exception, refresh_and_handle_exception
+from fastapi import HTTPException
+from helpers import update_object_attributes
+from models import Project
+from sqlmodel import Session, select
+from schemas.project import ProjectCreate, ProjectUpdatePartial
+from database import commit_and_handle_exception, refresh_and_handle_exception
   
   
-  class ProjectService:
+class ProjectService:
   
-      def insert_project_db(self, project_create: ProjectCreate, user_id: int, session: Session):
-          new_project = Project(
-              name=project_create.name.strip(), description=project_create.description.strip(), user_id=user_id
-          )
-          session.add(new_project)
-          commit_and_handle_exception(session)
-          refresh_and_handle_exception(session, new_project)
-          return new_project
+    def insert_project_db(self, project_create: ProjectCreate, user_id: int, session: Session):
+        new_project = Project(
+            name=project_create.name.strip(),
+	    description=project_create.description.strip(),
+            user_id=user_id
+        )
+        session.add(new_project)
+        commit_and_handle_exception(session)
+        refresh_and_handle_exception(session, new_project)
+        return new_project
   
-      def select_project_by_id_db(self, project_id: int, user_id: int, session: Session):
-          project = self._get_project_by_id(project_id, session)
-          self._check_project_access(project, user_id)
-          return project
+    def select_project_by_id_db(self, project_id: int, user_id: int, session: Session):
+        project = self._get_project_by_id(project_id, session)
+        self._check_project_access(project, user_id)
+        return project
   
-      def select_all_projects_db(self, user_id: int, session: Session):
-          statement = select(Project).where(Project.user_id == user_id)
-          projects = session.exec(statement).all()
-          return projects
+    def select_all_projects_db(self, user_id: int, session: Session):
+        statement = select(Project).where(Project.user_id == user_id)
+        projects = session.exec(statement).all()
+        return projects
   
-      def update_partial_project_by_id_db(
-          self, project_id: int, project_update: ProjectUpdatePartial, user_id: int, session: Session
-      ):
-          project = self._get_project_by_id(project_id, session)
-          self._check_project_access(project, user_id)
-          update_object_attributes(project, list(Project.model_json_schema()["properties"].keys()), project_update)
-          commit_and_handle_exception(session)
-          refresh_and_handle_exception(session, project)
-          return project
+    def update_partial_project_by_id_db(self, project_id: int, project_update: ProjectUpdatePartial, user_id: int, session: Session):
+        project = self._get_project_by_id(project_id, session)
+        self._check_project_access(project, user_id)
+        update_object_attributes(project, list(Project.model_json_schema()["properties"].keys()), project_update)
+        commit_and_handle_exception(session)
+        refresh_and_handle_exception(session, project)
+        return project
   
-      def delete_project_by_id_db(self, project_id: int, user_id: int, session: Session):
-          project = self._get_project_by_id(project_id, session)
-          self._check_project_access(project, user_id)
-          session.delete(project)
-          commit_and_handle_exception(session)
+    def delete_project_by_id_db(self, project_id: int, user_id: int, session: Session):
+        project = self._get_project_by_id(project_id, session)
+        self._check_project_access(project, user_id)
+        session.delete(project)
+        commit_and_handle_exception(session)
   
-      def _get_project_by_id(self, project_id: int, session: Session):
-          project = session.get(Project, project_id)
-          if project is None:
-              raise HTTPException(status_code=404, detail="Project not found")
-          return project
+    def _get_project_by_id(self, project_id: int, session: Session):
+        project = session.get(Project, project_id)
+        if project is None:
+            raise HTTPException(status_code=404, detail="Project not found")
+        return project
   
-      def _check_project_access(self, project: Project, user_id: int):
-          if project.user_id != user_id:
-              raise HTTPException(status_code=403, detail="Forbidden")
+    def _check_project_access(self, project: Project, user_id: int):
+        if project.user_id != user_id:
+            raise HTTPException(status_code=403, detail="Forbidden")
   ```
 </details>
 
@@ -2615,182 +2612,183 @@ The registration form is essential for capturing new user details and storing th
   <summary>Register Component Code</summary>
 
   ```typescript
-  import { useState, ChangeEvent, FormEvent } from "react";
-   import { Button, Form } from "react-bootstrap";
-   import { useNavigate } from "react-router-dom";
-  
-   interface FormData {
-     name: string;
-     surname: string;
-     email: string;
-     password: string;
-     password_confirmation: string;
-   }
-  
-   function RegisterForm() {
-     const [formData, setFormData] = useState<FormData>({
-       name: "",
-       surname: "",
-       email: "",
-       password: "",
-       password_confirmation: "",
-     });
-  
-     const [errors, setErrors] = useState<{ [key: string]: string }>({});
-     const [errorMessage, setErrorMessage] = useState<string>("");
-     const navigate = useNavigate();
-  
-     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-       const { name, value } = e.target;
-  
-       setFormData({
-         ...formData,
-         [name]: value,
-       });
-     };
-  
-     const validateForm = () => {
-       let isValid = true;
-       const newErrors: { [key: string]: string } = {};
-  
-       // Validate name
-       if (!formData.name) {
-         newErrors.name = "Name is required";
-       } else if (formData.name.length < 3 || formData.name.length > 100) {
-         newErrors.name = "Name must be between 3 and 100 characters";
-       }
-  
-       // Validate surname
-       if (!formData.surname) {
-         newErrors.surname = "Surname is required";
-       } else if (formData.surname.length < 3 || formData.surname.length > 100) {
-         newErrors.surname = "Surname must be between 3 and 100 characters";
-       }
-  
-       // Validate email
-       if (!formData.email) {
-         newErrors.email = "Email is required";
-       } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-         newErrors.email = "Invalid email address";
-       } else if (formData.email.length < 3 || formData.email.length > 100) {
-         newErrors.email = "Email must be between 3 and 100 characters";
-       }
-  
-       // Validate password
-       if (!formData.password) {
-         newErrors.password = "Password is required";
-       } else if (formData.password.length < 3 || formData.password.length > 100) {
-         newErrors.password = "Password must be between 3 and 100 characters";
-       }
-  
-       // Validate password confirmation
-       if (!formData.password_confirmation) {
-         newErrors.password_confirmation = "Password confirmation is required";
-       } else if (formData.password !== formData.password_confirmation) {
-         newErrors.password_confirmation =
-           "Password and password confirmation must match";
-       }
-  
-       setErrors(newErrors);
-       isValid = Object.keys(newErrors).length === 0;
-       return isValid;
-     };
-  
-     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-       e.preventDefault();
-  
-       if (validateForm()) {
-         fetch("http://localhost:8000/user", {
-           method: "POST",
-           headers: {
-             "Content-Type": "application/json",
-           },
-           body: JSON.stringify(formData),
-         })
-           .then((response) => {
-             if (response.ok) {
-               navigate("/login", { replace: true });
-             } else {
-               setErrorMessage("Registration failed");
-             }
-           })
-           .catch((error) => {
-             console.error("Error:", error);
-             setErrorMessage("Failed to register");
-           });
-       }
-     };
-  
-     return (
-       <>
-         <h1>Register</h1>
-         {errorMessage && <div className="text-danger">{errorMessage}</div>}
-         <Form onSubmit={handleSubmit}>
-           <Form.Group>
-             <Form.Label>Name</Form.Label>
-             <Form.Control
-               type="text"
-               name="name"
-               value={formData.name}
-               onChange={handleInputChange}
-             />
-             {errors.name && <div className="text-danger">{errors.name}</div>}
-           </Form.Group>
-           <Form.Group>
-             <Form.Label>Surname</Form.Label>
-             <Form.Control
-               type="text"
-               name="surname"
-               value={formData.surname}
-               onChange={handleInputChange}
-             />
-             {errors.surname && (
-               <div className="text-danger">{errors.surname}</div>
-             )}
-           </Form.Group>
-           <Form.Group>
-             <Form.Label>Email</Form.Label>
-             <Form.Control
-               type="email"
-               name="email"
-               value={formData.email}
-               onChange={handleInputChange}
-             />
-             {errors.email && <div className="text-danger">{errors.email}</div>}
-           </Form.Group>
-           <Form.Group>
-             <Form.Label>Password</Form.Label>
-             <Form.Control
-               type="password"
-               name="password"
-               value={formData.password}
-               onChange={handleInputChange}
-             />
-             {errors.password && (
-               <div className="text-danger">{errors.password}</div>
-             )}
-           </Form.Group>
-           <Form.Group>
-             <Form.Label>Confirm Password</Form.Label>
-             <Form.Control
-               type="password"
-               name="password_confirmation"
-               value={formData.password_confirmation}
-               onChange={handleInputChange}
-             />
-             {errors.password_confirmation && (
-               <div className="text-danger">{errors.password_confirmation}</div>
-             )}
-           </Form.Group>
-           <Button variant="primary" type="submit" className="mt-3">
-             Register
-           </Button>
-         </Form>
-       </>
-     );
-   }
-  
-   export default RegisterForm;
+import { useState, ChangeEvent, FormEvent } from "react";
+import { Button, Form } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+
+interface FormData {
+  name: string;
+  surname: string;
+  email: string;
+  password: string;
+  password_confirmation: string;
+}
+
+function RegisterForm() {
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    surname: "",
+    email: "",
+    password: "",
+    password_confirmation: "",
+  });
+
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [errorMessage, setErrorMessage] = useState<string>("");
+  const navigate = useNavigate();
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors: { [key: string]: string } = {};
+
+    // Validate name
+    if (!formData.name) {
+      newErrors.name = "Name is required";
+    } else if (formData.name.length < 3 || formData.name.length > 100) {
+      newErrors.name = "Name must be between 3 and 100 characters";
+    }
+
+    // Validate surname
+    if (!formData.surname) {
+      newErrors.surname = "Surname is required";
+    } else if (formData.surname.length < 3 || formData.surname.length > 100) {
+      newErrors.surname = "Surname must be between 3 and 100 characters";
+    }
+
+    // Validate email
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Invalid email address";
+    } else if (formData.email.length < 3 || formData.email.length > 100) {
+      newErrors.email = "Email must be between 3 and 100 characters";
+    }
+
+    // Validate password
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 3 || formData.password.length > 100) {
+      newErrors.password = "Password must be between 3 and 100 characters";
+    }
+
+    // Validate password confirmation
+    if (!formData.password_confirmation) {
+      newErrors.password_confirmation = "Password confirmation is required";
+    } else if (formData.password !== formData.password_confirmation) {
+      newErrors.password_confirmation =
+        "Password and password confirmation must match";
+    }
+
+    setErrors(newErrors);
+    isValid = Object.keys(newErrors).length === 0;
+    return isValid;
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (validateForm()) {
+      fetch("http://localhost:8000/user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      })
+        .then((response) => {
+          if (response.ok) {
+            navigate("/login", { replace: true });
+          } else {
+            setErrorMessage("Registration failed");
+          }
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          setErrorMessage("Failed to register");
+        });
+    }
+  };
+
+  return (
+    <>
+      <h1>Register</h1>
+      {errorMessage && <div className="text-danger">{errorMessage}</div>}
+      <Form onSubmit={handleSubmit}>
+        <Form.Group>
+          <Form.Label>Name</Form.Label>
+          <Form.Control
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+          />
+          {errors.name && <div className="text-danger">{errors.name}</div>}
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>Surname</Form.Label>
+          <Form.Control
+            type="text"
+            name="surname"
+            value={formData.surname}
+            onChange={handleInputChange}
+          />
+          {errors.surname && (
+            <div className="text-danger">{errors.surname}</div>
+          )}
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>Email</Form.Label>
+          <Form.Control
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+          />
+          {errors.email && <div className="text-danger">{errors.email}</div>}
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>Password</Form.Label>
+          <Form.Control
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
+          />
+          {errors.password && (
+            <div className="text-danger">{errors.password}</div>
+          )}
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>Confirm Password</Form.Label>
+          <Form.Control
+            type="password"
+            name="password_confirmation"
+            value={formData.password_confirmation}
+            onChange={handleInputChange}
+          />
+          {errors.password_confirmation && (
+            <div className="text-danger">{errors.password_confirmation}</div>
+          )}
+        </Form.Group>
+        <Button variant="primary" type="submit" className="mt-3">
+          Register
+        </Button>
+      </Form>
+    </>
+  );
+}
+
+export default RegisterForm;
+
   ```
 </details>
 
@@ -2804,136 +2802,137 @@ The login form allows existing users to authenticate by providing their email an
   <summary>Login Component Code</summary>
 
   ```typescript
-  import { useState, ChangeEvent, FormEvent, useContext } from "react";
-   import { useNavigate } from "react-router-dom";
-   import {
-     Button,
-     Form,
-     FormControl,
-     FormGroup,
-     FormText,
-   } from "react-bootstrap";
-  
-   interface FormData {
-     email: string;
-     password: string;
-   }
-  
-   function LoginForm() {
-     const [formData, setFormData] = useState<FormData>({
-       email: "",
-       password: "",
-     });
-  
-     const navigate = useNavigate();
-  
-     const [errors, setErrors] = useState<{ [key: string]: string }>({});
-     const [errorMessage, setErrorMessage] = useState<string>("");
-  
-     const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-       const { name, value } = e.target;
-  
-       setFormData({
-         ...formData,
-         [name]: value,
-       });
-     };
-  
-     const validateForm = () => {
-       let isValid = true;
-       const newErrors: { [key: string]: string } = {};
-  
-       // Validate email
-       if (!formData.email) {
-         newErrors.email = "Email is required";
-       } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-         newErrors.email = "Invalid email address";
-       } else if (formData.email.length < 3 || formData.email.length > 100) {
-         newErrors.email = "Email must be between 3 and 100 characters";
-       }
-  
-       // Validate password
-       if (!formData.password) {
-         newErrors.password = "Password is required";
-       } else if (formData.password.length < 3 || formData.password.length > 100) {
-         newErrors.password = "Password must be between 3 and 100 characters";
-       }
-  
-       setErrors(newErrors);
-       isValid = Object.keys(newErrors).length === 0;
-       return isValid;
-     };
-  
-     const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-       e.preventDefault();
-  
-       if (validateForm()) {
-         fetch("http://localhost:8000/auth/token", {
-           method: "POST",
-           headers: {
-             "Content-Type": "application/x-www-form-urlencoded",
-           },
-           body: new URLSearchParams({
-             username: formData.email,
-             password: formData.password,
-           }),
-         })
-           .then((response) => {
-             if (response.ok) {
-               return response.json();
-             } else {
-               setErrorMessage("Login failed");
-             }
-           })
-           .then((data) => {
-             console.log(data.access_token);
-             navigate("/projects");
-           })
-           .catch((error) => {
-             console.error("Error:", error);
-             setErrorMessage("An error occurred");
-           });
-       }
-     };
-  
-     return (
-       <>
-         <h1>Login</h1>
-         {errorMessage && <div className="error">{errorMessage}</div>}
-         <Form onSubmit={handleSubmit}>
-           <FormGroup>
-             <Form.Label>Email</Form.Label>
-             <FormControl
-               type="email"
-               name="email"
-               value={formData.email}
-               onChange={handleInputChange}
-             ></FormControl>
-             {errors.email && (
-               <FormText className="text-danger"> * {errors.email}</FormText>
-             )}
-           </FormGroup>
-           <FormGroup>
-             <Form.Label>Password</Form.Label>
-             <FormControl
-               type="password"
-               name="password"
-               value={formData.password}
-               onChange={handleInputChange}
-             ></FormControl>
-             {errors.password && (
-               <FormText className="text-danger"> * {errors.password}</FormText>
-             )}
-           </FormGroup>
-           <Button variant="primary" type="submit" className="mt-3">
-             Login
-           </Button>
-         </Form>
-       </>
-     );
-   }
-  
-   export default LoginForm;
+import { useState, ChangeEvent, FormEvent, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Button,
+  Form,
+  FormControl,
+  FormGroup,
+  FormText,
+} from "react-bootstrap";
+
+interface FormData {
+  email: string;
+  password: string;
+}
+
+function LoginForm() {
+  const [formData, setFormData] = useState<FormData>({
+    email: "",
+    password: "",
+  });
+
+  const navigate = useNavigate();
+
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors: { [key: string]: string } = {};
+
+    // Validate email
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Invalid email address";
+    } else if (formData.email.length < 3 || formData.email.length > 100) {
+      newErrors.email = "Email must be between 3 and 100 characters";
+    }
+
+    // Validate password
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 3 || formData.password.length > 100) {
+      newErrors.password = "Password must be between 3 and 100 characters";
+    }
+
+    setErrors(newErrors);
+    isValid = Object.keys(newErrors).length === 0;
+    return isValid;
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (validateForm()) {
+      fetch("http://localhost:8000/auth/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          username: formData.email,
+          password: formData.password,
+        }),
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            setErrorMessage("Login failed");
+          }
+        })
+        .then((data) => {
+          console.log(data.access_token);
+          navigate("/projects");
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          setErrorMessage("An error occurred");
+        });
+    }
+  };
+
+  return (
+    <>
+      <h1>Login</h1>
+      {errorMessage && <div className="error">{errorMessage}</div>}
+      <Form onSubmit={handleSubmit}>
+        <FormGroup>
+          <Form.Label>Email</Form.Label>
+          <FormControl
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+          ></FormControl>
+          {errors.email && (
+            <FormText className="text-danger"> * {errors.email}</FormText>
+          )}
+        </FormGroup>
+        <FormGroup>
+          <Form.Label>Password</Form.Label>
+          <FormControl
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
+          ></FormControl>
+          {errors.password && (
+            <FormText className="text-danger"> * {errors.password}</FormText>
+          )}
+        </FormGroup>
+        <Button variant="primary" type="submit" className="mt-3">
+          Login
+        </Button>
+      </Form>
+    </>
+  );
+}
+
+export default LoginForm;
+
   ```
 </details>
 
@@ -2947,33 +2946,34 @@ To integrate these forms into your application, you'll need to modify your React
   <summary>React Router Code</summary>
   
   ```typescript
-  import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
-   import ProjectList from "./components/Projects/ProjectList/ProjectList.tsx";
-   import Header from "./components/Header/Header.tsx";
-   import Login from "./components/Login/Login.tsx";
-   import Register from "./components/Register/Register.tsx";
-  
-   function App() {
-     return (
-       <BrowserRouter>
-         <Header />
-         <Container className="mt-5">
-           <Routes>
-             <Route path="login" element={<Login />} />
-             <Route path="register" element={<Register />} />
-             <Route path="/projects/">
-               <Route path="create" element={<ProjectCreate />} />
-               <Route path="" element={<ProjectList />} />
-               <Route path=":project_id" element={<ProjectView />} />
-               <Route path=":project_id/edit" element={<ProjectEdit />} />
-             </Route>
-           </Routes>
-         </Container>
-       </BrowserRouter>
-     );
-   }
-  
-   export default App;
+import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
+import ProjectList from "./components/Projects/ProjectList/ProjectList.tsx";
+import Header from "./components/Header/Header.tsx";
+import Login from "./components/Login/Login.tsx";
+import Register from "./components/Register/Register.tsx";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <Header />
+      <Container className="mt-5">
+        <Routes>
+          <Route path="login" element={<Login />} />
+          <Route path="register" element={<Register />} />
+          <Route path="/projects/">
+            <Route path="create" element={<ProjectCreate />} />
+            <Route path="" element={<ProjectList />} />
+            <Route path=":project_id" element={<ProjectView />} />
+            <Route path=":project_id/edit" element={<ProjectEdit />} />
+          </Route>
+        </Routes>
+      </Container>
+    </BrowserRouter>
+  );
+}
+
+export default App;
+
   ```
 </details>
 
@@ -2999,19 +2999,18 @@ First, create a folder named `/context` inside `/frontend/src/components`. In th
   <summary>Token Context Code</summary>
   
   ```typescript
-  import React from "react";
-  
-  interface TokenContextType {
-      token: string;
-      login: (newToken: string) => void,
-      logout: () => void,
-      isTokenValid: () => boolean,
-  }
-  
-  const TokenContext = React.createContext({} as TokenContextType);
-  
-  export default TokenContext;
-  
+import React from "react";
+
+interface TokenContextType {
+  token: string;
+  login: (newToken: string) => void;
+  logout: () => void;
+  isTokenValid: () => boolean;
+}
+
+const TokenContext = React.createContext({} as TokenContextType);
+
+export default TokenContext;  
   ```
 </details>
 
@@ -3023,46 +3022,46 @@ The `TokenContextProvider.tsx` component will utilize state management to store 
   <summary>Token Context Provider Code</summary>
   
   ```typescript
-  import { useState } from "react";
-  import { jwtDecode } from "jwt-decode";
-  import TokenContext from "./TokenContext";
-  
-  interface TokenContextProviderProps {
-    children: React.ReactNode;
-  }
-  
-  const TokenContextProvider = ({ children }: TokenContextProviderProps) => {
-    const [token, setToken] = useState<string | null>();
-  
-    const login = (newToken: string) => {
-      setToken(newToken);
-    };
-  
-    const logout = () => {
-      setToken(null);
-    };
-  
-    const isTokenValid = () => {
-      try {
-        const decodedToken = token ? jwtDecode(token) : null;
-        if (decodedToken && decodedToken.exp) {
-          const currentTime = Date.now() / 1000;
-          return decodedToken.exp > currentTime;
-        }
-      } catch (error) {
-        logout();
-      }
-      return false;
-    };
-  
-    return (
-      <TokenContext.Provider value={{ token, login, logout, isTokenValid }}>
-        {children}
-      </TokenContext.Provider>
-    );
+import { useState } from "react";
+import { jwtDecode } from "jwt-decode";
+import TokenContext from "./TokenContext";
+
+interface TokenContextProviderProps {
+  children: React.ReactNode;
+}
+
+const TokenContextProvider = ({ children }: TokenContextProviderProps) => {
+  const [token, setToken] = useState<string | null>();
+
+  const login = (newToken: string) => {
+    setToken(newToken);
   };
-  
-  export default TokenContextProvider;
+
+  const logout = () => {
+    setToken(null);
+  };
+
+  const isTokenValid = () => {
+    try {
+      const decodedToken = token ? jwtDecode(token) : null;
+      if (decodedToken && decodedToken.exp) {
+        const currentTime = Date.now() / 1000;
+        return decodedToken.exp > currentTime;
+      }
+    } catch (error) {
+      logout();
+    }
+    return false;
+  };
+
+  return (
+    <TokenContext.Provider value={{ token, login, logout, isTokenValid }}>
+      {children}
+    </TokenContext.Provider>
+  );
+};
+
+export default TokenContextProvider;
   
   ```
 </details>
@@ -3075,41 +3074,41 @@ To ensure that the `TokenContextProvider` is accessible throughout your applicat
   <summary>Access Token Context Provider Code</summary>
   
   ```typescript
-  import { Route, BrowserRouter, Routes } from "react-router-dom";
-  import { Container } from "react-bootstrap";
-  import "bootstrap/dist/css/bootstrap.min.css";
-  import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";
-  import ProjectView from "./components/Projects/ProjectView/ProjectView.tsx";
-  import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
-  import ProjectList from "./components/Projects/ProjectList/ProjectList.tsx";
-  import Header from "./components/Header/Header.tsx";
-  import Login from "./components/Login/Login.tsx";
-  import Register from "./components/Register/Register.tsx";
-  import TokenContextProvider from "./context/TokenContextProvider.tsx";
-  
-  function App() {
-    return (
-      <BrowserRouter>
-        <TokenContextProvider>
-          <Header />
-          <Container className="mt-5">
-            <Routes>
-              <Route path="login" element={<Login />} />
-              <Route path="register" element={<Register />} />
-              <Route path="/projects/">
-                <Route path="create" element={<ProjectCreate />} />
-                <Route path="" element={<ProjectList />} />
-                <Route path=":project_id" element={<ProjectView />} />
-                <Route path=":project_id/edit" element={<ProjectEdit />} />
-              </Route>
-            </Routes>
-          </Container>
-        </TokenContextProvider>
-      </BrowserRouter>
-    );
-  }
-  
-  export default App;
+import { Route, BrowserRouter, Routes } from "react-router-dom";
+import { Container } from "react-bootstrap";
+import "bootstrap/dist/css/bootstrap.min.css";
+import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";
+import ProjectView from "./components/Projects/ProjectView/ProjectView.tsx";
+import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
+import ProjectList from "./components/Projects/ProjectList/ProjectList.tsx";
+import Header from "./components/Header/Header.tsx";
+import Login from "./components/Login/Login.tsx";
+import Register from "./components/Register/Register.tsx";
+import TokenContextProvider from "./context/TokenContextProvider.tsx";
+
+function App() {
+  return (
+    <BrowserRouter>
+      <TokenContextProvider>
+        <Header />
+        <Container className="mt-5">
+          <Routes>
+            <Route path="login" element={<Login />} />
+            <Route path="register" element={<Register />} />
+            <Route path="/projects/">
+              <Route path="create" element={<ProjectCreate />} />
+              <Route path="" element={<ProjectList />} />
+              <Route path=":project_id" element={<ProjectView />} />
+              <Route path=":project_id/edit" element={<ProjectEdit />} />
+            </Route>
+          </Routes>
+        </Container>
+      </TokenContextProvider>
+    </BrowserRouter>
+  );
+}
+
+export default App;
   
   ```
 </details>
@@ -3122,138 +3121,139 @@ To utilize the ContextAPI in a login component, modify the login form handling t
   <summary>Login Component Code</summary>
 
   ```typescript
-  import { useState, ChangeEvent, FormEvent, useContext } from "react";
-  import { useNavigate } from "react-router-dom";
-  import TokenContext from "../../context/TokenContext";
-  import {
-    Button,
-    Form,
-    FormControl,
-    FormGroup,
-    FormText,
-  } from "react-bootstrap";
-  
-  interface FormData {
-    email: string;
-    password: string;
-  }
-  
-  function LoginForm() {
-    const [formData, setFormData] = useState<FormData>({
-      email: "",
-      password: "",
+import { useState, ChangeEvent, FormEvent, useContext } from "react";
+import { useNavigate } from "react-router-dom";
+import TokenContext from "../../context/TokenContext";
+import {
+  Button,
+  Form,
+  FormControl,
+  FormGroup,
+  FormText,
+} from "react-bootstrap";
+
+interface FormData {
+  email: string;
+  password: string;
+}
+
+function LoginForm() {
+  const [formData, setFormData] = useState<FormData>({
+    email: "",
+    password: "",
+  });
+
+  const navigate = useNavigate();
+  const { login } = useContext(TokenContext)!;
+
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+
+    setFormData({
+      ...formData,
+      [name]: value,
     });
-  
-    const navigate = useNavigate();
-    const { login } = useContext(TokenContext)!;
-  
-    const [errors, setErrors] = useState<{ [key: string]: string }>({});
-    const [errorMessage, setErrorMessage] = useState<string>("");
-  
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-  
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
-    };
-  
-    const validateForm = () => {
-      let isValid = true;
-      const newErrors: { [key: string]: string } = {};
-  
-      // Validate email
-      if (!formData.email) {
-        newErrors.email = "Email is required";
-      } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-        newErrors.email = "Invalid email address";
-      } else if (formData.email.length < 3 || formData.email.length > 100) {
-        newErrors.email = "Email must be between 3 and 100 characters";
-      }
-  
-      // Validate password
-      if (!formData.password) {
-        newErrors.password = "Password is required";
-      } else if (formData.password.length < 3 || formData.password.length > 100) {
-        newErrors.password = "Password must be between 3 and 100 characters";
-      }
-  
-      setErrors(newErrors);
-      isValid = Object.keys(newErrors).length === 0;
-      return isValid;
-    };
-  
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-  
-      if (validateForm()) {
-        fetch("http://localhost:8000/auth/token", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: new URLSearchParams({
-            username: formData.email,
-            password: formData.password,
-          }),
+  };
+
+  const validateForm = () => {
+    let isValid = true;
+    const newErrors: { [key: string]: string } = {};
+
+    // Validate email
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Invalid email address";
+    } else if (formData.email.length < 3 || formData.email.length > 100) {
+      newErrors.email = "Email must be between 3 and 100 characters";
+    }
+
+    // Validate password
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 3 || formData.password.length > 100) {
+      newErrors.password = "Password must be between 3 and 100 characters";
+    }
+
+    setErrors(newErrors);
+    isValid = Object.keys(newErrors).length === 0;
+    return isValid;
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (validateForm()) {
+      fetch("http://localhost:8000/auth/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded",
+        },
+        body: new URLSearchParams({
+          username: formData.email,
+          password: formData.password,
+        }),
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            setErrorMessage("Login failed");
+          }
         })
-          .then((response) => {
-            if (response.ok) {
-              return response.json();
-            } else {
-              setErrorMessage("Login failed");
-            }
-          })
-          .then((data) => {
-            login(data.access_token);
-            navigate("/projects");
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            setErrorMessage("An error occurred");
-          });
-      }
-    };
-  
-    return (
-      <>
-        <h1>Login</h1>
-        {errorMessage && <div className="error">{errorMessage}</div>}
-        <Form onSubmit={handleSubmit}>
-          <FormGroup>
-            <Form.Label>Email</Form.Label>
-            <FormControl
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-            ></FormControl>
-            {errors.email && (
-              <FormText className="text-danger"> * {errors.email}</FormText>
-            )}
-          </FormGroup>
-          <FormGroup>
-            <Form.Label>Password</Form.Label>
-            <FormControl
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-            ></FormControl>
-            {errors.password && (
-              <FormText className="text-danger"> * {errors.password}</FormText>
-            )}
-          </FormGroup>
-          <Button variant="primary" type="submit" className="mt-3">
-            Login
-          </Button>
-        </Form>
-      </>
-    );
-  }
-  
-  export default LoginForm;
+        .then((data) => {
+          login(data.access_token);
+          navigate("/projects");
+        })
+        .catch((error) => {
+          console.error("Error:", error);
+          setErrorMessage("An error occurred");
+        });
+    }
+  };
+
+  return (
+    <>
+      <h1>Login</h1>
+      {errorMessage && <div className="error">{errorMessage}</div>}
+      <Form onSubmit={handleSubmit}>
+        <FormGroup>
+          <Form.Label>Email</Form.Label>
+          <FormControl
+            type="email"
+            name="email"
+            value={formData.email}
+            onChange={handleInputChange}
+          ></FormControl>
+          {errors.email && (
+            <FormText className="text-danger"> * {errors.email}</FormText>
+          )}
+        </FormGroup>
+        <FormGroup>
+          <Form.Label>Password</Form.Label>
+          <FormControl
+            type="password"
+            name="password"
+            value={formData.password}
+            onChange={handleInputChange}
+          ></FormControl>
+          {errors.password && (
+            <FormText className="text-danger"> * {errors.password}</FormText>
+          )}
+        </FormGroup>
+        <Button variant="primary" type="submit" className="mt-3">
+          Login
+        </Button>
+      </Form>
+    </>
+  );
+}
+
+export default LoginForm;
+
   ```
 </details>
 
@@ -3265,59 +3265,60 @@ The React Header component creates a navigation bar for your application using R
   <summary>React Header Code</summary>
 
   ```typescript
-  import { useContext, useEffect, useState } from "react";
-  import { NavLink, useNavigate } from "react-router-dom";
-  import TokenContext from "../../context/TokenContext";
-  import { Container, Nav, Navbar } from "react-bootstrap";
-  
-  function Header() {
-    const { isTokenValid, logout } = useContext(TokenContext);
-    const navigate = useNavigate();
-  
-    useEffect(() => {
-      if (!isTokenValid()) {
-        navigate("/login", { replace: true });
-      }
-    }, [isTokenValid]);
-  
-    const handleLogout = () => {
-      logout();
+import { useContext, useEffect, useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import TokenContext from "../../context/TokenContext";
+import { Container, Nav, Navbar } from "react-bootstrap";
+
+function Header() {
+  const { isTokenValid, logout } = useContext(TokenContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isTokenValid()) {
       navigate("/login", { replace: true });
-    };
-  
-    return (
-      <>
-        <Navbar bg="light">
-          <Container>
-            <Navbar.Brand>GUI APP</Navbar.Brand>
-            <Nav className="me-auto">
-              {isTokenValid() && (
-                <Nav.Link as={NavLink} to="/projects">
-                  Projects
+    }
+  }, [isTokenValid]);
+
+  const handleLogout = () => {
+    logout();
+    navigate("/login", { replace: true });
+  };
+
+  return (
+    <>
+      <Navbar bg="light">
+        <Container>
+          <Navbar.Brand>GUI APP</Navbar.Brand>
+          <Nav className="me-auto">
+            {isTokenValid() && (
+              <Nav.Link as={NavLink} to="/projects">
+                Projects
+              </Nav.Link>
+            )}
+          </Nav>
+          <Nav className="me-end">
+            {!isTokenValid() ? (
+              <>
+                <Nav.Link as={NavLink} to="/login" className="Button">
+                  Login
                 </Nav.Link>
-              )}
-            </Nav>
-            <Nav className="me-end">
-              {!isTokenValid() ? (
-                <>
-                  <Nav.Link as={NavLink} to="/login" className="Button">
-                    Login
-                  </Nav.Link>
-                  <Nav.Link as={NavLink} to="/register">
-                    Register
-                  </Nav.Link>
-                </>
-              ) : (
-                <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
-              )}
-            </Nav>
-          </Container>
-        </Navbar>
-      </>
-    );
-  }
-  
-  export default Header;
+                <Nav.Link as={NavLink} to="/register">
+                  Register
+                </Nav.Link>
+              </>
+            ) : (
+              <Nav.Link onClick={handleLogout}>Logout</Nav.Link>
+            )}
+          </Nav>
+        </Container>
+      </Navbar>
+    </>
+  );
+}
+
+export default Header;
+
   ```
 </details>
 
@@ -3338,265 +3339,241 @@ In scenarios where the API demands JWT tokens for authentication, it's vital to 
 
   ### Create Project
   ```typescript
-  import React, { ChangeEvent, useState, useContext } from "react";
-  import { Button, Form, FormControl } from "react-bootstrap";
-  import { useNavigate } from "react-router-dom";
-  import TokenContext from "../../../context/TokenContext";
-  
-  interface FormData {
-    name: string;
-    description: string;
-  }
-  
-  function ProjectCreate() {
-    const [formData, setFormData] = useState<FormData>({
-      name: "",
-      description: "",
-    });
-  
-    const navigate = useNavigate();
-    const { token } = useContext(TokenContext);
-  
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-  
-      fetch(`http://localhost:8000/project`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(formData),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to create project");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          navigate(`/projects/${data.id}`);
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
-    };
-  
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      setFormData({
-        ...formData,
-        [name]: value,
-      });
-    };
-  
-    return (
-      <>
-        <h1>Create Project</h1>
-        <Form onSubmit={handleSubmit}>
-          <Form.Group>
-            <Form.Label>Project Name</Form.Label>
-            <FormControl
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-            />
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Description</Form.Label>
-            <FormControl
-              as="textarea"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-            />
-          </Form.Group>
-          <Button variant="primary" type="submit" className="mt-3">
-            Create
-          </Button>
-        </Form>
-      </>
-    );
-  }
-  
-  export default ProjectCreate;
+import React, { ChangeEvent, useState, useContext } from "react";
+import { Button, Form, FormControl } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import TokenContext from "../../../context/TokenContext";
 
+interface FormData {
+  name: string;
+  description: string;
+}
+
+function ProjectCreate() {
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    description: "",
+  });
+
+  const navigate = useNavigate();
+  const { token } = useContext(TokenContext);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    fetch(`http://localhost:8000/project`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(formData),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to create project");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        navigate(`/projects/${data.id}`);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
+      });
+  };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  return (
+    <>
+      <h1>Create Project</h1>
+      <Form onSubmit={handleSubmit}>
+        <Form.Group>
+          <Form.Label>Project Name</Form.Label>
+          <FormControl
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+          />
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>Description</Form.Label>
+          <FormControl
+            as="textarea"
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+          />
+        </Form.Group>
+        <Button variant="primary" type="submit" className="mt-3">
+          Create
+        </Button>
+      </Form>
+    </>
+  );
+}
+
+export default ProjectCreate;
   ```
 
   ### Edit Project
   ```typescript
-  import { ChangeEvent, useEffect, useState, useContext } from "react";
-  import { Button, Form, FormControl } from "react-bootstrap";
-  import { useNavigate, useParams } from "react-router-dom";
-  import TokenContext from "../../../context/TokenContext";
-  
-  interface FormData {
-    name: string;
-    description: string;
-    is_finished: boolean;
-  }
-  
-  function ProjectEdit() {
-    const { project_id } = useParams();
-    const { token, isTokenValid } = useContext(TokenContext);
-    const navigate = useNavigate();
-    const [formData, setFormData] = useState<FormData>({
-      name: "",
-      description: "",
-      is_finished: false,
-    });
-  
-    useEffect(() => {
-      if (isTokenValid()) {
-        fetch(`http://localhost:8000/project/${project_id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        })
-          .then((response) => {
-            if (response.ok) {
-              return response.json();
-            } else {
-              throw new Error("Failed to fetch project data");
-            }
-          })
-          .then((data) => {
-            setFormData({
-              name: data.name,
-              description: data.description,
-              is_finished: data.is_finished,
-            });
-          })
-          .catch((error) => {
-            console.error("Error fetching project data:", error.message);
-          });
-      }
-    }, [project_id, isTokenValid, token, navigate]);
-  
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-  
+import { ChangeEvent, useEffect, useState, useContext } from "react";
+import { Button, Form, FormControl } from "react-bootstrap";
+import { useNavigate, useParams } from "react-router-dom";
+import TokenContext from "../../../context/TokenContext";
+
+interface FormData {
+  name: string;
+  description: string;
+  is_finished: boolean;
+}
+
+function ProjectEdit() {
+  const { project_id } = useParams();
+  const { token, isTokenValid } = useContext(TokenContext);
+  const navigate = useNavigate();
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    description: "",
+    is_finished: false,
+  });
+
+  useEffect(() => {
+    if (isTokenValid()) {
       fetch(`http://localhost:8000/project/${project_id}`, {
-        method: "PATCH",
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify(formData),
       })
         .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to edit project");
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to fetch project data");
           }
-          return response.json();
         })
         .then((data) => {
-          navigate(`/projects/${data.id}`);
+          setFormData({
+            name: data.name,
+            description: data.description,
+            is_finished: data.is_finished,
+          });
         })
         .catch((error) => {
-          console.error("Error:", error);
+          console.error("Error fetching project data:", error.message);
         });
-    };
-  
-    const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
-      const { name, value } = e.target;
-      setFormData({
-        ...formData,
-        [name]: value,
+    }
+  }, [project_id, isTokenValid, token, navigate]);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    fetch(`http://localhost:8000/project/${project_id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(formData),
+    })
+      .then((response) => {
+        if (!response.ok) {
+          throw new Error("Failed to edit project");
+        }
+        return response.json();
+      })
+      .then((data) => {
+        navigate(`/projects/${data.id}`);
+      })
+      .catch((error) => {
+        console.error("Error:", error);
       });
-    };
-  
-    return (
-      <>
-        <h1>Edit Project</h1>
-        <Form onSubmit={handleSubmit}>
-          <Form.Group>
-            <Form.Label>Project Name</Form.Label>
-            <FormControl
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-            />
-          </Form.Group>
-          <Form.Group>
-            <Form.Label>Description</Form.Label>
-            <FormControl
-              as="textarea"
-              name="description"
-              value={formData.description}
-              onChange={handleInputChange}
-            />
-          </Form.Group>
-          <Form.Group>
-            <Form.Check
-              type="checkbox"
-              label="Finished"
-              name="is_finished"
-              checked={formData.is_finished}
-              onChange={(e) =>
-                setFormData({
-                  ...formData,
-                  is_finished: e.target.checked,
-                })
-              }
-            />
-          </Form.Group>
-          <Button variant="primary" type="submit" className="mt-3">
-            Update
-          </Button>
-        </Form>
-      </>
-    );
-  }
-  
-  export default ProjectEdit;
+  };
+
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  return (
+    <>
+      <h1>Edit Project</h1>
+      <Form onSubmit={handleSubmit}>
+        <Form.Group>
+          <Form.Label>Project Name</Form.Label>
+          <FormControl
+            type="text"
+            name="name"
+            value={formData.name}
+            onChange={handleInputChange}
+          />
+        </Form.Group>
+        <Form.Group>
+          <Form.Label>Description</Form.Label>
+          <FormControl
+            as="textarea"
+            name="description"
+            value={formData.description}
+            onChange={handleInputChange}
+          />
+        </Form.Group>
+        <Form.Group>
+          <Form.Check
+            type="checkbox"
+            label="Finished"
+            name="is_finished"
+            checked={formData.is_finished}
+            onChange={(e) =>
+              setFormData({
+                ...formData,
+                is_finished: e.target.checked,
+              })
+            }
+          />
+        </Form.Group>
+        <Button variant="primary" type="submit" className="mt-3">
+          Update
+        </Button>
+      </Form>
+    </>
+  );
+}
+
+export default ProjectEdit;
 
   ```
 
   ### List Projects
   ```typescript
-  import { useEffect, useState, useContext } from "react";
-  import { Project } from "../../../interfaces/Project";
-  import { Button, Card, Col, Row } from "react-bootstrap";
-  import { Link, useNavigate } from "react-router-dom";
-  import TokenContext from "../../../context/TokenContext";
-  
-  function ProjectList() {
-    const [projects, setProjects] = useState<Project[]>([]);
-    const { logout, token, isTokenValid } = useContext(TokenContext);
-    const navigate = useNavigate();
-  
-    useEffect(() => {
-      if (isTokenValid()) {
-        fetch("http://localhost:8000/project/", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        })
-          .then((response) => {
-            if (response.ok) {
-              return response.json();
-            }
-            throw new Error("Failed to fetch projects data");
-          })
-          .then((data) => {
-            setProjects(data);
-          })
-          .catch((error) => {
-            console.error("Error fetching projects data:", error.message);
-          });
-      }
-    }, [token, isTokenValid, navigate]);
-  
-    const delete_project = (project_id: number) => {
-      fetch(`http://localhost:8000/project/${project_id}`, {
-        method: "DELETE",
+import { useEffect, useState, useContext } from "react";
+import { Project } from "../../../interfaces/Project";
+import { Button, Card, Col, Row } from "react-bootstrap";
+import { Link, useNavigate } from "react-router-dom";
+import TokenContext from "../../../context/TokenContext";
+
+function ProjectList() {
+  const [projects, setProjects] = useState<Project[]>([]);
+  const { logout, token, isTokenValid } = useContext(TokenContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isTokenValid()) {
+      fetch("http://localhost:8000/project/", {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
@@ -3605,188 +3582,213 @@ In scenarios where the API demands JWT tokens for authentication, it's vital to 
         .then((response) => {
           if (response.ok) {
             return response.json();
-          } else {
-            throw new Error("Failed to delete project");
           }
+          throw new Error("Failed to fetch projects data");
         })
-        .then(() => {
-          setProjects(projects.filter((project) => project.id !== project_id));
+        .then((data) => {
+          setProjects(data);
         })
         .catch((error) => {
-          console.error("Error deleting project:", error);
+          console.error("Error fetching projects data:", error.message);
         });
-    };
-  
-    const finish_project = (project_id: number) => {
-      fetch(`http://localhost:8000/project/${project_id}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ is_finished: true }),
+    }
+  }, [token, isTokenValid, navigate]);
+
+  const delete_project = (project_id: number) => {
+    fetch(`http://localhost:8000/project/${project_id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error("Failed to delete project");
+        }
       })
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
-            throw new Error("Failed to finish project");
-          }
-        })
-        .then(() => {
-          setProjects(
-            projects.map((project) =>
-              project.id === project_id
-                ? { ...project, is_finished: true }
-                : project
-            )
-          );
-        })
-        .catch((error) => {
-          console.error("Error finishing project:", error);
-        });
-    };
-  
-    return (
-      <>
-        <Row>
-          <Col xs={10}>
-            <h1>Projects</h1>
-          </Col>
-          <Col xs={2}>
-            <Link to="/projects/create">
-              <Button variant="primary" className="float-end">
-                Create project
-              </Button>
-            </Link>
-          </Col>
-        </Row>
-  
-        {projects.map((project) => (
-          <Card key={project.id} className="mb-3">
-            <Card.Body>
-              <Row>
-                <Col>
-                  <Card.Title>
-                    {project.name} -
-                    {project.is_finished ? " Finished" : " Not finished"}
-                  </Card.Title>
-                </Col>
-                <Col xs={2} className="d-flex justify-content-end gap-2">
-                  {!project.is_finished && (
-                    <Button
-                      variant="success"
-                      onClick={() => finish_project(project.id)}
-                    >
-                      Finish
-                    </Button>
-                  )}
-                  <Link to={`/projects/${project.id}`}>
-                    <Button variant="primary">View</Button>
-                  </Link>
-                  <Link to={`/projects/${project.id}/edit`}>
-                    <Button variant="warning">Edit</Button>
-                  </Link>
+      .then(() => {
+        setProjects(projects.filter((project) => project.id !== project_id));
+      })
+      .catch((error) => {
+        console.error("Error deleting project:", error);
+      });
+  };
+
+  const finish_project = (project_id: number) => {
+    fetch(`http://localhost:8000/project/${project_id}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ is_finished: true }),
+    })
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error("Failed to finish project");
+        }
+      })
+      .then(() => {
+        setProjects(
+          projects.map((project) =>
+            project.id === project_id
+              ? { ...project, is_finished: true }
+              : project
+          )
+        );
+      })
+      .catch((error) => {
+        console.error("Error finishing project:", error);
+      });
+  };
+
+  return (
+    <>
+      <Row>
+        <Col xs={10}>
+          <h1>Projects</h1>
+        </Col>
+        <Col xs={2}>
+          <Link to="/projects/create">
+            <Button variant="primary" className="float-end">
+              Create project
+            </Button>
+          </Link>
+        </Col>
+      </Row>
+
+      {projects.map((project) => (
+        <Card key={project.id} className="mb-3">
+          <Card.Body>
+            <Row>
+              <Col>
+                <Card.Title>
+                  {project.name} -
+                  {project.is_finished ? " Finished" : " Not finished"}
+                </Card.Title>
+              </Col>
+              <Col xs={2} className="d-flex justify-content-end gap-2">
+                {!project.is_finished && (
                   <Button
-                    variant="danger"
-                    onClick={() => delete_project(project.id)}
+                    variant="success"
+                    onClick={() => finish_project(project.id)}
                   >
-                    Delete
+                    Finish
                   </Button>
-                </Col>
-              </Row>
-  
-              <Card.Text>{project.description}</Card.Text>
-            </Card.Body>
-          </Card>
-        ))}
-      </>
-    );
-  }
-  
-  export default ProjectList;
+                )}
+                <Link to={`/projects/${project.id}`}>
+                  <Button variant="primary">View</Button>
+                </Link>
+                <Link to={`/projects/${project.id}/edit`}>
+                  <Button variant="warning">Edit</Button>
+                </Link>
+                <Button
+                  variant="danger"
+                  onClick={() => delete_project(project.id)}
+                >
+                  Delete
+                </Button>
+              </Col>
+            </Row>
+
+            <Card.Text>{project.description}</Card.Text>
+          </Card.Body>
+        </Card>
+      ))}
+    </>
+  );
+}
+
+export default ProjectList;
+
   ```
 
   ### View Project
   ```typescript
-  import { useEffect, useState, useContext } from "react";
-  import { Project } from "../../../interfaces/Project";
-  import { Link, useNavigate, useParams } from "react-router-dom";
-  import { Button } from "react-bootstrap";
-  import TokenContext from "../../../context/TokenContext";
-  
-  function ProjectView() {
-    const navigate = useNavigate();
-    const { project_id } = useParams();
-    const { token, isTokenValid } = useContext(TokenContext);
-    const [project, setProject] = useState<Project>();
-  
-    useEffect(() => {
-      if (isTokenValid()) {
-        fetch(`http://localhost:8000/project/${project_id}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        })
-          .then((response) => {
-            if (response.ok) {
-              return response.json();
-            } else {
-              throw new Error("Failed to fetch project data");
-            }
-          })
-          .then((data) => {
-            setProject(data);
-          })
-          .catch((error) => {
-            navigate("/projects", { replace: true });
-            console.error("Error fetching project data:", error.message);
-          });
-      }
-    }, [token, isTokenValid, project_id, navigate]);
-  
-    const delete_project = (project_id: number) => {
+import { useEffect, useState, useContext } from "react";
+import { Project } from "../../../interfaces/Project";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { Button } from "react-bootstrap";
+import TokenContext from "../../../context/TokenContext";
+
+function ProjectView() {
+  const navigate = useNavigate();
+  const { project_id } = useParams();
+  const { token, isTokenValid } = useContext(TokenContext);
+  const [project, setProject] = useState<Project>();
+
+  useEffect(() => {
+    if (isTokenValid()) {
       fetch(`http://localhost:8000/project/${project_id}`, {
-        method: "DELETE",
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-      }).then((response) => {
-        if (!response.ok) {
-          throw new Error("Failed to delete project");
-        }
-        navigate("/projects", { replace: true });
-      });
-    };
-  
-    return (
-      <>
-        {project && (
-          <>
-            <h1>{project.name}</h1>
-            <hr />
-            <p>Finished: {project.is_finished ? "Yes" : "No"}</p>
-            <p>{project.description}</p>
-            <Link to={`/projects/${project.id}/edit`}>
-              <Button variant="warning">Edit</Button>
-            </Link>
-            <Button
-              variant="danger"
-              onClick={() => delete_project(project.id)}
-              className="ms-2"
-            >
-              Delete
-            </Button>
-          </>
-        )}
-      </>
-    );
-  }
-  
-  export default ProjectView;
+      })
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else {
+            throw new Error("Failed to fetch project data");
+          }
+        })
+        .then((data) => {
+          setProject(data);
+        })
+        .catch((error) => {
+          navigate("/projects", { replace: true });
+          console.error("Error fetching project data:", error.message);
+        });
+    }
+  }, [token, isTokenValid, project_id, navigate]);
+
+  const delete_project = (project_id: number) => {
+    fetch(`http://localhost:8000/project/${project_id}`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+    }).then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to delete project");
+      }
+      navigate("/projects", { replace: true });
+    });
+  };
+
+  return (
+    <>
+      {project && (
+        <>
+          <h1>{project.name}</h1>
+          <hr />
+          <p>Finished: {project.is_finished ? "Yes" : "No"}</p>
+          <p>{project.description}</p>
+          <Link to={`/projects/${project.id}/edit`}>
+            <Button variant="warning">Edit</Button>
+          </Link>
+          <Button
+            variant="danger"
+            onClick={() => delete_project(project.id)}
+            className="ms-2"
+          >
+            Delete
+          </Button>
+        </>
+      )}
+    </>
+  );
+}
+
+export default ProjectView;
+
 
   ```
 </details>
@@ -3801,25 +3803,25 @@ Given that React Router does not inherently provide an authenticated route featu
   <summary>Authenticated Component</summary>
 
   ```typescript
-  import { useContext, useEffect } from "react";
-   import { useNavigate } from "react-router-dom";
-   import TokenContext from "../../context/TokenContext";
-  
-   function Authenticated({ children }: { children: React.ReactNode }) {
-     const { isTokenValid, logout } = useContext(TokenContext)!;
-     const navigate = useNavigate();
-  
-     useEffect(() => {
-       if (!isTokenValid()) {
-         logout();
-         navigate("/login", { replace: true });
-       }
-     }, [isTokenValid, logout, navigate]);
-  
-     return <>{children}</>;
-   }
-  
-   export default Authenticated;
+import { useContext, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import TokenContext from "../../context/TokenContext";
+
+function Authenticated({ children }: { children: React.ReactNode }) {
+  const { isTokenValid, logout } = useContext(TokenContext)!;
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isTokenValid()) {
+      logout();
+      navigate("/login", { replace: true });
+    }
+  }, [isTokenValid, logout, navigate]);
+
+  return <>{children}</>;
+}
+
+export default Authenticated;
   ```
 </details>
 
