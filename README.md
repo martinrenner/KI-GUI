@@ -1619,7 +1619,7 @@ Function `delete_project` sends a DELETE request to the server to delete the pro
       fetch(`http://localhost:8000/project/${project_id}`, {
          method: "GET",
          headers: {
-            contentType: "application/json",
+            "Content-Type": "application/json",
          },
       })
          .then((response) => {
@@ -3726,7 +3726,7 @@ In scenarios where the API demands JWT tokens for authentication, it's vital to 
         fetch(`http://localhost:8000/project/${project_id}`, {
           method: "GET",
           headers: {
-            contentType: "application/json",
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         })
