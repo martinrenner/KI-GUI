@@ -1871,10 +1871,14 @@ Implementing a user registration endpoint is a foundational step in creating a s
 
 The user model defines the structure of user data within the database. It includes fields for user identification, personal information, and authentication details such as the hashed password. This model is essential for creating and querying user records in the database.
 
+1. Implement the User class/table structure in `backend/src/models.py`. Don't forget to add the foreign key to Project to have the owner information.
+
 <details>
   <summary>User Model Code</summary>
 
   ```python
+#models.py
+
 from sqlmodel import Field, SQLModel, BIGINT, VARCHAR
 from sqlalchemy import Column
   
@@ -1910,10 +1914,14 @@ class User(SQLModel, table=True):
 
 Pydantic schemas are used for request validation, serialization, and documentation purposes. The UserCreate schema ensures that incoming data for user registration is valid and meets the application's requirements. The UserRead schema is designed for data output, omitting sensitive information like passwords.
 
+1. Define User Schema in `/backend/src/schemas/user.py`. It should include all create inputs for creating entity with Pydantic validation and object read structure.
+
 <details>
   <summary>User Schema Code</summary>
   
   ```python
+#schemas/user.py
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator, EmailStr
 from pydantic_core.core_schema import FieldValidationInfo
 import re
@@ -1986,10 +1994,15 @@ class UserRead(UserBase):
 
 The user service layer encapsulates the business logic for user management, including the insertion of new user records into the database. This layer abstracts away the complexity of database operations from the routing logic.
 
+1. Create `user_service.py` in `backend/src/services`.
+2. Implement method that handle inserting new user into db.
+   
 <details>
   <summary>User Service Code</summary>
   
   ```python
+#services/user_service.py
+
 from sqlmodel import Session
 from schemas.user import UserCreate
 from models import User
@@ -2016,10 +2029,14 @@ class UserService:
 
 The user router handles HTTP requests related to user operations. The create_user endpoint specifically deals with registering new users. It validates incoming data against the UserCreate schema, leverages the UserService to insert the new user record, and returns a sanitized UserRead object.
 
+1. Create  user router in `routers/user.py`. This endpoint should invoke user_service that handle user insert. To be able to commit to db, add db_dependency.
+
 <details>
   <summary>User Router Code</summary>
-
+	
   ```python
+#routers/user.py
+
 from typing import Annotated
 from fastapi import APIRouter, Depends
 from services.user_service import UserService
@@ -2056,10 +2073,14 @@ def create_user(user_create: UserCreate, session: db_dependency):
 
 Finally you need to include new router in `main.py`
 
+1. Import and include new user_router into your app instance.
+
 <details>
   <summary>Include User Router Code</summary>
   
   ```python
+#main.py
+
 from fastapi import FastAPI
 import os
 from database_init import initialize_database
@@ -2110,10 +2131,16 @@ Creating a secure login system is essential for any web application that handles
 
 The AccessToken class is responsible for creating and verifying JWTs. It uses the jose library to encode user-specific information into tokens that are signed with a secret key. These tokens include an expiry time to ensure that they are valid for a limited period.
 
+1. Create a `tokens` folder. (Since many applications implement more than one token, it is better to create a folder for all tokens.)
+2. In this folder, create a new file `access_token.py`. This file will handle the creation and authentication of access tokens.
+3. Implement the logic for `create_token` and `verify_token`.
+
 <details>
   <summary>Access Token Code</summary>
   
   ```python
+#tokens/access_token.py
+
 from datetime import datetime, timedelta, timezone
 import os
 from typing import Annotated
@@ -2165,10 +2192,14 @@ class AccessToken:
 
 The `TokenRead` schema defines the structure of the response that the login endpoint will return. This response includes the access token, its expiry time, and the token type (Bearer).
 
+1. Create new file `schemas/token.py` that implements `TokenRead` logic for returning access token with addition information after login.
+
 <details>
   <summary>Token Schema Code</summary>
   
   ```python
+#schemas/token.py
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from typing import Optional
 from tokens.access_token import AccessToken
@@ -2200,10 +2231,14 @@ class TokenRead(TokenBase):
 
 The UserLogin schema is used to validate the login request data. It requires the user's email and password.
 
+1. Modify `schemas/user.py` with `UserLogin` structure. It will store user login email and password.
+
 <details>
   <summary>User Schema Code</summary>
   
   ```python
+#schemas/user.py
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator, EmailStr
 from pydantic_core.core_schema import FieldValidationInfo
 import re
@@ -2263,10 +2298,15 @@ class UserLogin(UserBase):
 ## AuthService
 
 The AuthService class contains methods to verify a user's email and password against the stored values in the database. It leverages the bcrypt library to safely compare hashed passwords.
+
+1. Create a `services/auth_service.py` file with the login logic. It should verify that the user exists in the db, and check that the password hash matches the hash in the db.
+
 <details>
   <summary>Auth Service Code</summary>
   
   ```python
+#services/auth_service.py
+
 from fastapi import HTTPException
 from sqlmodel import Session, select
 from schemas.user import UserLogin
@@ -2302,10 +2342,14 @@ class AuthService:
 
 When registering a new user, their password is hashed using bcrypt before being stored in the database. This ensures that plain-text passwords are never stored or transmitted.
 
+1. Improving the password handling logic in `services/user_service.py`. Since we check the password by hash. User registration must store it in hast.
+
 <details>
   <summary>Hash User Password Code</summary>
   
   ```python
+#services/user_service.py
+
 from sqlmodel import Session
 from schemas.user import UserCreate
 from models import User
@@ -2332,12 +2376,16 @@ class UserService:
 
 Finally, the `auth_router` is included in the FastAPI application to handle authentication requests. This router defines the `/auth/token` endpoint, which processes login requests, authenticates users, and returns JWTs if the credentials are valid.
 
+1. Implement `auth_router` in `routers/auth.py`. The only endpoint it should offer is `/auth/token`.
+
 <details>
   <summary>
 	  Auth Router Code
   </summary>
 	
   ```python
+#services/auth_service.py
+
 from typing import Annotated
 from fastapi import APIRouter, Depends
 from fastapi.security import OAuth2PasswordRequestForm
@@ -2348,13 +2396,11 @@ from database import get_session
 from sqlmodel import Session
 import os
 
-ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", 10))
-
- auth_router = APIRouter(prefix="/auth", tags=["Auth"])
+auth_router = APIRouter(prefix="/auth", tags=["Auth"])
 
 db_dependency = Annotated[Session, Depends(get_session)]
 
- auth_service = AuthService()
+auth_service = AuthService()
 
 
 @auth_router.post("/token", response_model=TokenRead)
@@ -2378,10 +2424,14 @@ def token_user(user_data: Annotated[OAuth2PasswordRequestForm, Depends()], sessi
 
 </details>
 
+1. Import and include `auth_router` in `main.py`.
+
 <details>
   <summary>Include Auth Router Code</summary>
   
   ```python
+#main.py
+
 from fastapi import FastAPI
 import os
 from database_init import initialize_database
@@ -2434,10 +2484,15 @@ Integrating authentication into your project management system ensures that user
 
 The project router defines the endpoints for creating, retrieving, updating, and deleting project resources. Authentication is enforced by extracting the user's identity from the access token, which is then used to validate access permissions for the requested operations.
 
+1. In the `routers/project.py` file, implement user_dependency to handle the validation of the specified token.
+2. Provide a user.id to each endpoint so that all results are based on the current user.
+
 <details>
   <summary>Project Router Code</summary>
   
   ```python
+#routers/project.py
+
 from typing import Annotated
 from fastapi import APIRouter, Depends
 from tokens.access_token import AccessToken
@@ -2540,10 +2595,15 @@ Each endpoint uses the user_dependency, which is a FastAPI Depends dependency th
 
 The project service layer contains the business logic for managing project resources. It interacts with the database to perform CRUD operations and implements authorization logic to ensure that users can only access or modify their projects.
 
+1. In the `project_service.py` file, add the user_id argument to each affected method from the `routers/project.py` file.
+2. Process the logic that each response is based on the specified user_id.
+
 <details>
   <summary>Project Service Code</summary>
   
   ```python
+#services/project_service.py
+
 from fastapi import HTTPException
 from helpers import update_object_attributes
 from models import Project
