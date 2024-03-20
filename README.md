@@ -3086,7 +3086,7 @@ First, create a folder named `/context` inside `/frontend/src/components`. In th
 import React from "react";
 
 interface TokenContextType {
-  token: string;
+  token: string | null | undefined;
   login: (newToken: string) => void;
   logout: () => void;
   isTokenValid: () => boolean;
@@ -3228,7 +3228,7 @@ function LoginForm() {
   });
 
   const navigate = useNavigate();
-  const { login } = useContext(TokenContext)!;
+  const { login } = useContext(TokenContext);
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -3282,19 +3282,19 @@ function LoginForm() {
         }),
       })
         .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
+          if (!response.ok) {
             setErrorMessage("Login failed");
+            throw new Error("Login failed");
           }
+          return response.json();
         })
         .then((data) => {
+          setErrorMessage("");
           login(data.access_token);
           navigate("/projects");
         })
         .catch((error) => {
           console.error("Error:", error);
-          setErrorMessage("An error occurred");
         });
     }
   };
@@ -3349,7 +3349,7 @@ The React Header component creates a navigation bar for your application using R
   <summary>React Header Code</summary>
 
   ```typescript
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import TokenContext from "../../context/TokenContext";
 import { Container, Nav, Navbar } from "react-bootstrap";
@@ -3362,7 +3362,7 @@ function Header() {
     if (!isTokenValid()) {
       navigate("/login", { replace: true });
     }
-  }, [isTokenValid]);
+  }, [isTokenValid, navigate]);
 
   const handleLogout = () => {
     logout();
@@ -3403,6 +3403,7 @@ function Header() {
 
 export default Header;
 
+
   ```
 </details>
 
@@ -3423,7 +3424,7 @@ In scenarios where the API demands JWT tokens for authentication, it's vital to 
 
   ### Create Project
   ```typescript
-import React, { ChangeEvent, useState, useContext } from "react";
+import { ChangeEvent, useState, useContext } from "react";
 import { Button, Form, FormControl } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import TokenContext from "../../../context/TokenContext";
@@ -3651,7 +3652,7 @@ import TokenContext from "../../../context/TokenContext";
 
 function ProjectList() {
   const [projects, setProjects] = useState<Project[]>([]);
-  const { logout, token, isTokenValid } = useContext(TokenContext);
+  const { token, isTokenValid } = useContext(TokenContext);
   const navigate = useNavigate();
 
   useEffect(() => {
