@@ -2794,15 +2794,14 @@ function RegisterForm() {
         body: JSON.stringify(formData),
       })
         .then((response) => {
-          if (response.ok) {
-            navigate("/login", { replace: true });
-          } else {
+          if (!response.ok) {
             setErrorMessage("Registration failed");
+	    throw new Error("Registration Failed");
           }
+	  navigate("/login", { replace: true });
         })
         .catch((error) => {
           console.error("Error:", error);
-          setErrorMessage("Failed to register");
         });
     }
   };
@@ -2891,8 +2890,7 @@ The login form allows existing users to authenticate by providing their email an
   <summary>Login Component Code</summary>
 
   ```typescript
-import { useState, ChangeEvent, FormEvent, useContext } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, ChangeEvent, FormEvent } from "react";
 import {
   Button,
   Form,
@@ -2911,8 +2909,6 @@ function LoginForm() {
     email: "",
     password: "",
   });
-
-  const navigate = useNavigate();
 
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [errorMessage, setErrorMessage] = useState<string>("");
@@ -2966,19 +2962,18 @@ function LoginForm() {
         }),
       })
         .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else {
+          if (!response.ok) {
             setErrorMessage("Login failed");
+	    throw new Error("Login failed");
           }
+  	  return response.json();
         })
         .then((data) => {
+	  setErrorMessage("");
           console.log(data.access_token);
-          navigate("/projects");
         })
         .catch((error) => {
           console.error("Error:", error);
-          setErrorMessage("An error occurred");
         });
     }
   };
