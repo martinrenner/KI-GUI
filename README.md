@@ -957,6 +957,9 @@ class ProjectUpdatePartial(ProjectBase):
 
 # 7. Project List
 
+> [!TIP]
+> Available checkpoint: [List Projects](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/7-ListProject.zip)
+
 ## React Files
 Important files you need to notice
 1. `index.html`: Entry point of application and contains the HTML structure. It includes a `<div>` element with an ID where React app will be mounted, along with the necessary scripts.
@@ -1434,6 +1437,9 @@ Finally add `onClick={() => delete_project(project.id)}` to the button with Dele
 
 # 8. Edit Project
 
+> [!TIP]
+> Available checkpoint: [Edit Project](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/8-EditProject.zip)
+
 To create EditProject component: 
 1. In the 'Projects' folder, create a subfolder titled 'EditProject'.
 2. Within the 'EditProject' folder, create a file named 'ProjectEdit.tsx'.
@@ -1607,6 +1613,10 @@ In `App.tsx` we just need to import component `ProjectEdit` and add new route pa
 </details>
 
 # 9. Project View
+
+> [!TIP]
+> Available checkpoint: [View Project](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/9-ViewProject.zip)
+
 To create ProjectView component: 
 1. In the 'Projects' folder, create a subfolder titled 'ProjectView'.
 2. Within the 'ProjectView' folder, create a file named 'ProjectView.tsx'.
@@ -1730,6 +1740,9 @@ In `App.tsx` we just need to import component `ProjectView` and add new route pa
 </details>
 
 # 10. Create Project
+
+> [!TIP]
+> Available checkpoint: [Create Project](https://github.com/martinrenner/KI-GUI/blob/main/CHECKPOINTS/10-CreateProject.zip)
 
 To create CreateProject component: 
 1. In the 'Projects' folder, create a subfolder titled 'CreateProject'.
