@@ -231,7 +231,7 @@ Use docker-compose.yml at the project root to define services for FastAPI, React
   ```
 </details>
 
-This docker-compose.yml file defines four services: fastapi, react, db (PostgreSQL), and pgadmin. It specifies the build context, port mappings, and environment variables for each service.
+This docker-compose.yml file defines four services: fastapi_app, react_app, postgres_db-application, and pgadmin_web. It specifies the build context, port mappings, and environment variables for each service.
 
 # 1. Running the Application: FastAPI and React
 
@@ -247,16 +247,19 @@ This guide outlines steps to run application with FastAPI and React. Before we c
 >[!NOTE]
 > Note: We have already prepared list of requirements so you don't need to install it manualy. Just create the virtual enviroment and run. `pip install -r requirements.txt`
 
-1. Set up a virtual environment `python -m venv venv`.
-2. Activate virtual environment `venv\Scripts\activate` or `source venv/bin/activate`.
-3. Install FastAPI and Uvicorn with `pip install fastapi uvicorn`.
-4. Freeze requirements for Docker `pip freeze > requirements.txt`
+1. Move to `backend`.
+2. Set up a virtual environment `python -m venv venv`.
+3. Activate virtual environment `venv\Scripts\activate` or `source venv/bin/activate`.
+4. Install FastAPI and Uvicorn with `pip install fastapi uvicorn`.
+5. Freeze requirements for Docker `pip freeze > requirements.txt`
+6. Change the Python interpreter to the one in your virtual environment.
 
 ## Setup React
 > [!NOTE]
 > Note: Similar to the Python virtual environment, local installation of Node modules aids in providing IntelliSense for development.
 
-1. Install dependencies with `npm install`.
+1. Move to `frontend`.
+2. Install dependencies with `npm install`.
 
 ## Configuring Environment Variables
 
@@ -268,10 +271,11 @@ Leveraging a `.env` file for environment variables is crucial for securing and c
 - Separation of Concerns: Decouples configuration from code, enhancing maintainability and scalability.
 - Portability & Scalability: Facilitates easy deployment across different environments and platforms, supporting dynamic updates to configuration as the application grows.
 
-1. Create a `.env` file by copying the provided .env.example template: `cp .env.example .env` or copy following code
+1. Move to root folder of your project.
+2. Create a `.env` file by copying the provided .env.example template: `cp .env.example .env` or copy following code:
 
 <details>
-  <summary>Env Code</summary>
+  <summary>Env Example Code</summary>
   
   ```bash
   # FastAPI Middleware
@@ -305,6 +309,8 @@ Leveraging a `.env` file for environment variables is crucial for securing and c
   ```
 </details>
 
+3. Fill in the `.env` file with your specific values.
+
 ## Docker Compose
 
 Docker Compose orchestrates the containers, ensuring they are built and started together.
@@ -331,7 +337,7 @@ This tutorial demonstrates how to integrate a PostgreSQL database into a FastAPI
 
 ## Database Configuration
 
-First, create a `database.py` file in `/backend` to set up the database connection and session management. This file utilizes environment variables to configure the database connection string securely.
+First, create a `database.py` file in `/backend/src` to set up the database connection and session management. This file utilizes environment variables to configure the database connection string securely.
 
 <details>
   <summary>Database Code</summary>
@@ -374,7 +380,7 @@ First, create a `database.py` file in `/backend` to set up the database connecti
 
 ## Model Definitions
 
-Next, define your database models using SQLModel in a `models.py` file. Here's an example with a simple `Test` model.
+Next, define your database models using SQLModel in `/backend/src/models.py` file. Here's an example with a simple `Test` model.
 
 <details>
   <summary>Model Code</summary>
@@ -394,7 +400,7 @@ Next, define your database models using SQLModel in a `models.py` file. Here's a
 
 ## Database Initialization
 
-Handle database initialization in a `database_init.py` file, ensuring tables are created if they don't exist.
+Handle database initialization in a `database_init.py` file, ensuring tables are created if they don't exist. It's required to import at least one model you've defined in `models.py`. Importing the model is crucial because it ensures that SQLModel is aware of the tables that need to be created.
 
 <details>
   <summary>Database Init Code</summary>
@@ -2279,7 +2285,7 @@ class AuthService:
         self._verify_password(user_data.password, user.hashed_password)
         return user
   
-    def _verify_user(self, user_login: User, session: Session):
+    def _verify_user(self, user_login: UserLogin, session: Session):
         query = select(User).where(User.email == user_login.email.strip())
         user = session.exec(query).first()
         if not user:
