@@ -61,6 +61,8 @@ FastAPI powers our application's backend, offering high performance and easy-to-
   <summary>FastAPI Init Code</summary>
   
   ```python
+  #main.py
+
   from fastapi import FastAPI
   
   app = FastAPI()
@@ -129,7 +131,7 @@ Modify `vite.config.ts` for a fixed port:
 <details>
   <summary>Vite Docker Config Code</summary>
   
-  ```javascript
+  ```typescipt
   import { defineConfig } from 'vite'
   import react from '@vitejs/plugin-react-swc'
   
@@ -343,6 +345,8 @@ First, create a `database.py` file in `/backend/src` to set up the database conn
   <summary>Database Code</summary>
   
   ```python
+  #database.py
+
   import os
   from fastapi import HTTPException
   from sqlmodel import Session, create_engine
@@ -386,6 +390,8 @@ Next, define your database models using SQLModel in `/backend/src/models.py` fil
   <summary>Model Code</summary>
   
   ```python
+  #models.py
+
   from sqlmodel import Field, SQLModel, BIGINT
   from sqlalchemy import Column
   
@@ -406,6 +412,8 @@ Handle database initialization in a `database_init.py` file, ensuring tables are
   <summary>Database Init Code</summary>
   
   ```python
+  #database_init.py
+
   from database import engine
   from sqlmodel import SQLModel
   from models import Test
@@ -423,6 +431,8 @@ In your FastAPI application's entry point, typically `main.py`, ensure you initi
   <summary>Main Code</summary>
   
   ```python
+  #main.py
+
   from fastapi import FastAPI
   from database_init import initialize_database
   
