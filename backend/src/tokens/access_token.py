@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 from typing import Annotated
 from fastapi import Depends, HTTPException
@@ -19,8 +19,8 @@ class AccessToken:
         token_payload = {
             "sub": user.email,
             "id": user.id,
-            "iat": datetime.utcnow(),
-            "exp": datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+            "iat": datetime.now(timezone.utc),
+            "exp": datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
             "typ": "Access",
         }
         return jwt.encode(token_payload, SECRET_KEY, algorithm=ALGORITHM)
@@ -34,7 +34,7 @@ class AccessToken:
             exp: int = payload.get("exp")
             typ: str = payload.get("typ")
 
-            if exp is not None and exp < datetime.utcnow().timestamp():
+            if exp is not None and exp < datetime.now(timezone.utc).timestamp():
                 raise HTTPException(status_code=401, detail="Access token expired")
 
             if email is None or user_id is None or typ != "Access":

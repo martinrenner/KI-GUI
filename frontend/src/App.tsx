@@ -4,7 +4,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";
 import ProjectView from "./components/Projects/ProjectView/ProjectView.tsx";
 import ProjectCreate from "./components/Projects/CreateProject/CreateProject.tsx";
-import ProjectList from "./components/Projects/ProjectsList/ProjectList.tsx";
+import ProjectList from "./components/Projects/ProjectList/ProjectList.tsx";
 import Header from "./components/Header/Header.tsx";
 import Login from "./components/Login/Login.tsx";
 import Register from "./components/Register/Register.tsx";
