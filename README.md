@@ -1715,7 +1715,8 @@ In `App.tsx` we just need to import component `ProjectView` and add new route pa
   import { Route, BrowserRouter, Routes } from "react-router-dom";
   import { Container } from "react-bootstrap";
   import "bootstrap/dist/css/bootstrap.min.css";
-  import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";;
+  import ProjectEdit from "./components/Projects/EditProject/EditProject.tsx";
+  import ProjectView from "./components/Projects/ProjectView/ProjectView.tsx";
   import ProjectList from "./components/Projects/ProjectList/ProjectList.tsx";
   import Header from "./components/Header/Header.tsx";
 
@@ -1727,6 +1728,7 @@ In `App.tsx` we just need to import component `ProjectView` and add new route pa
               <Routes>
                 <Route path="/projects/">
                     <Route path="" element={<ProjectList />} />
+                    <Route path=":project_id" element={<ProjectView />} />
                     <Route path=":project_id/edit" element={<ProjectEdit />} />
                 </Route>
               </Routes>
